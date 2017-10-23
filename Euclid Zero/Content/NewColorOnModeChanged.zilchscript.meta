@@ -1,0 +1,9 @@
+[Version:1]
+TextContent 
+{
+	ZilchScriptBuilder 
+	{
+		var Name = "NewColorOnModeChanged"
+		var ResourceId = 0x59381e7f7461e09a
+	}
+}

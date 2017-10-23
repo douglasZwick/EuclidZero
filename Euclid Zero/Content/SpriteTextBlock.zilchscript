@@ -1,0 +1,15 @@
+[RunInEditor]
+class SpriteTextBlock : ZilchComponent
+{
+  [Dependency] var SpriteText : SpriteText;
+  
+  
+  [Property] var TextBlock : TextBlock;
+  
+  
+  function Initialize(init : CogInitializer)
+  {
+    if (this.TextBlock != null)
+      this.SpriteText.Text = this.TextBlock.Text;
+  }
+}

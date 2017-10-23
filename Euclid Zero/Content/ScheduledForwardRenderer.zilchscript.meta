@@ -1,0 +1,9 @@
+[Version:1]
+TextContent 
+{
+	ZilchScriptBuilder 
+	{
+		var Name = "ScheduledForwardRenderer"
+		var ResourceId = 0x590a37c348c32498
+	}
+}

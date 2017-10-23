@@ -1,0 +1,23 @@
+class MathExtensions
+{
+  [Static][Extension(typeid(Math))]
+  function ApproximatelyEqualReal2(a : Real2, b : Real2, epsilon : Real) : Boolean
+  {
+    var result = Math.ApproximatelyEqual(a, b, epsilon);
+    return result.X && result.Y;
+  }
+  
+  [Static][Extension(typeid(Math))]
+  function ApproximatelyEqualReal3(a : Real3, b : Real3, epsilon : Real) : Boolean
+  {
+    var result = Math.ApproximatelyEqual(a, b, epsilon);
+    return result.X && result.Y && result.Z;
+  }
+  
+  [Static][Extension(typeid(Math))]
+  function ApproximatelyEqualReal4(a : Real4, b : Real4, epsilon : Real) : Boolean
+  {
+    var result = Math.ApproximatelyEqual(a, b, epsilon);
+    return result.X && result.Y && result.Z && result.W;
+  }
+}

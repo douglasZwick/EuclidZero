@@ -1,0 +1,43 @@
+class IrisMaster : ZilchComponent
+{
+  sends IrisOpenRequest : IrisEvent;
+  sends IrisCloseRequest : IrisEvent;
+  
+  
+  [Dependency] var IrisRenderer : IrisRenderer;
+  
+  
+  function Initialize(init : CogInitializer)
+  {
+    Zero.Connect(this.GameSession, Events.IrisOpenRequest, this.OnIrisOpenRequest);
+    Zero.Connect(this.GameSession, Events.IrisCloseRequest, this.OnIrisCloseRequest);
+  }
+  
+  
+  function OnIrisOpenRequest(event : IrisEvent)
+  {
+    this.IrisRenderer.PercentClosed = 100.0;
+    this.IrisRenderer.IrisTexture = event.Texture;
+    this.IrisRenderer.IrisColor = event.Color;
+    
+    Action.Property(this.Owner.Actions, @this.IrisRenderer.PercentClosed, 0.0, event.Duration, Ease.QuadInOut);
+  }
+  
+  
+  function OnIrisCloseRequest(event : IrisEvent)
+  {
+    this.IrisRenderer.PercentClosed = 0.0;
+    this.IrisRenderer.IrisTexture = event.Texture;
+    this.IrisRenderer.IrisColor = event.Color;
+    
+    Action.Property(this.Owner.Actions, @this.IrisRenderer.PercentClosed, 100.0, event.Duration, Ease.QuadInOut);
+  }
+}
+
+
+class IrisEvent : ZilchEvent
+{
+  var Texture : Texture;
+  var Color : Real4;
+  var Duration : Real;
+}

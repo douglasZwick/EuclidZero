@@ -1,0 +1,17 @@
+[RunInEditor]
+class ColliderDraw : ZilchComponent
+{
+  [Dependency] var Collider : Collider;
+  
+  
+  function Initialize(init : CogInitializer)
+  {
+    Zero.Connect(this.Space, Events.FrameUpdate, this.OnFrameUpdate);
+  }
+  
+  
+  function OnFrameUpdate(event : UpdateEvent)
+  {
+    this.Collider.DebugDraw();
+  }
+}

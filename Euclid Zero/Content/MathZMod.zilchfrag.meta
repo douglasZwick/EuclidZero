@@ -1,0 +1,9 @@
+[Version:1]
+TextContent 
+{
+	ZilchFragmentBuilder 
+	{
+		var Name = "MathZMod"
+		var ResourceId = 0x590ae641d5593e65
+	}
+}

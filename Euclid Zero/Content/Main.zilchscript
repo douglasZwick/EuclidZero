@@ -1,0 +1,18 @@
+class Main : ZilchComponent
+{
+  [Static] var Frame : Integer;
+  
+  
+  function Initialize(init : CogInitializer)
+  {
+    Main.Frame = 0;
+    
+    Zero.Connect(this.Space, Events.LogicUpdate, this.OnLogicUpdate);
+  }
+  
+  
+  function OnLogicUpdate(event : UpdateEvent)
+  {
+    ++Main.Frame;
+  }
+}

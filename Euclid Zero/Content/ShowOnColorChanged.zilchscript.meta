@@ -1,0 +1,9 @@
+[Version:1]
+TextContent 
+{
+	ZilchScriptBuilder 
+	{
+		var Name = "ShowOnColorChanged"
+		var ResourceId = 0x590ac403ccc2f03d
+	}
+}

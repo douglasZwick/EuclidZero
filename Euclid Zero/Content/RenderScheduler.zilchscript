@@ -1,0 +1,87 @@
+[RunInEditor]
+class RenderScheduler : ZilchComponent
+{
+  sends PreProcessRenderUpdate  : RenderScheduleEvent;
+  sends MainRenderUpdate        : RenderScheduleEvent;
+  sends PostProcessRenderUpdate : RenderScheduleEvent;
+  sends DebugRenderUpdate       : RenderScheduleEvent;
+  
+  
+  [Property] var UseViewportScaling : Boolean = true;
+  [Serialize] var ViewportScale_ : Real = 1.0;
+  [Property] var ViewportScale : Real
+  {
+    get { return this.ViewportScale_; }
+    
+    set
+    {
+      this.ViewportScale_ = value;
+      
+      if (value < 1.0) this.ViewportScale_ = 1.0;
+    }
+  }
+  [Serialize] var PixelWidth_ : Real = 1.0;
+  [Property] var PixelWidth : Real
+  {
+    get { return this.PixelWidth_; }
+    
+    set
+    {
+      this.PixelWidth_ = value;
+      
+      if (value < 1.0) this.PixelWidth_ = 1.0;
+    }
+  }
+  [Serialize] var PixelHeight_ : Real = 1.0;
+  [Property] var PixelHeight : Real
+  {
+    get { return this.PixelHeight_; }
+    
+    set
+    {
+      this.PixelHeight_ = value;
+      
+      if (value < 1.0) this.PixelHeight_ = 1.0;
+    }
+  }
+  
+  
+  function Initialize(init : CogInitializer)
+  {
+    Zero.Connect(this.Owner, Events.RenderTasksUpdate, this.OnRenderTasksUpdate);
+  }
+  
+  
+  function OnRenderTasksUpdate(event : RenderTasksEvent)
+  {
+    var samplerSettings = SamplerSettings();
+    samplerSettings.Filtering = TextureFiltering.Nearest;
+    
+    var viewportSize = event.ViewportSize;
+    
+    if (this.UseViewportScaling)
+    {
+      var viewportScaleVector = Real2(this.ViewportScale_ * this.PixelWidth_,
+                                      this.ViewportScale_ * this.PixelHeight_);
+      viewportSize = (viewportSize / viewportScaleVector) as Integer2;
+    }
+    
+    var rse = RenderScheduleEvent();
+    rse.Event = event;
+    rse.ViewportSize = viewportSize;
+    rse.SamplerSettings = samplerSettings;
+    
+    this.Owner.DispatchEvent(Events.PreProcessRenderUpdate, rse);
+    this.Owner.DispatchEvent(Events.MainRenderUpdate, rse);
+    this.Owner.DispatchEvent(Events.PostProcessRenderUpdate, rse);
+    this.Owner.DispatchEvent(Events.DebugRenderUpdate, rse);
+  }
+}
+
+
+class RenderScheduleEvent : ZilchEvent
+{
+  var Event : RenderTasksEvent;
+  var ViewportSize : Integer2;
+  var SamplerSettings : SamplerSettings;
+}

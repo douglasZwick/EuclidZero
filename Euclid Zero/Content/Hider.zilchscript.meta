@@ -1,0 +1,9 @@
+[Version:1]
+TextContent 
+{
+	ZilchScriptBuilder 
+	{
+		var Name = "Hider"
+		var ResourceId = 0x593863eeeae2e838
+	}
+}

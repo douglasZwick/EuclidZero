@@ -1,0 +1,43 @@
+class HUDMaster : ZilchComponent
+{
+  sends ModeChanged : HUDEvent;
+  sends ColorChanged : HUDEvent;
+  
+  
+  [Property] var ShapeTypeTextPath : CogPath = CogPath();
+  [Property] var ColorPickerPath : CogPath = CogPath();
+  
+  var ShapeTypeText : Cog { get { return this.ShapeTypeTextPath.Cog; }}
+  var ColorPicker : Cog { get { return this.ColorPickerPath.Cog; }}
+  
+  
+  function Initialize(init : CogInitializer)
+  {
+    Zero.Connect(this.GameSession, Events.ModeChanged, this.OnModeChanged);
+    Zero.Connect(this.GameSession, Events.ColorChanged, this.OnColorChanged);
+  }
+  
+  
+  function OnModeChanged(event : HUDEvent)
+  {
+    this.ShapeTypeText.DispatchEvent(Events.ModeChanged, event);
+  }
+  
+  
+  function OnColorChanged(event : HUDEvent)
+  {
+    this.ColorPicker.DispatchEvent(Events.ColorChanged, event);
+  }
+}
+
+
+class HUDEvent : ZilchEvent
+{
+  var Mode : DrawingMode;
+  var Color : Real4;
+  var ColorH : Real;
+  var ColorS : Real;
+  var ColorV : Real;
+  var ColorA : Real;
+  var ColorHDR : Real;
+}

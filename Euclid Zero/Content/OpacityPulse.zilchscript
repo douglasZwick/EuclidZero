@@ -1,0 +1,28 @@
+class OpacityPulse : ZilchComponent
+{
+  [Dependency] var Sprite : Sprite;
+  
+  
+  [Property] var Period : Real = 1.0;
+  [Property] var Min : Real = 0.0;
+  [Property] var Max : Real = 1.0;
+  
+  var T : Real;
+  
+  
+  function Initialize(init : CogInitializer)
+  {
+    Zero.Connect(this.Space, Events.LogicUpdate, this.OnLogicUpdate);
+  }
+  
+  
+  function OnLogicUpdate(event : UpdateEvent)
+  {
+    var opacity = HM[Real].CosineMagic(this.T, this.Period, this.Max, this.Min);
+    var color = this.Sprite.VertexColor;
+    color.W = opacity;
+    this.Sprite.VertexColor = color;
+    
+    this.T = HM[Real].ZMod(this.T + event.Dt, this.Period);
+  }
+}

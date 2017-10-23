@@ -1,0 +1,9 @@
+[Version:1]
+TextContent 
+{
+	ZilchScriptBuilder 
+	{
+		var Name = "IntersectionPointMaker"
+		var ResourceId = 0x59055d991ce3355a
+	}
+}

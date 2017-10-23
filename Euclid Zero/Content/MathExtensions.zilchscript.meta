@@ -1,0 +1,9 @@
+[Version:1]
+TextContent 
+{
+	ZilchScriptBuilder 
+	{
+		var Name = "MathExtensions"
+		var ResourceId = 0x590572fc4e20f951
+	}
+}

@@ -1,0 +1,15 @@
+class NewTextOnModeChanged : ZilchComponent
+{
+  function Initialize(init : CogInitializer)
+  {
+    Zero.Connect(this.Owner, Events.ModeChanged, this.OnModeChanged);
+  }
+  
+  
+  function OnModeChanged(event : HUDEvent)
+  {
+    var tse = TextShadowEvent();
+    tse.Text = ObjectDrawer.ModeNames[event.Mode];
+    this.Owner.DispatchEvent(Events.NewText, tse);
+  }
+}

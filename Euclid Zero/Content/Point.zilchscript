@@ -1,0 +1,81 @@
+class Point : ZilchComponent
+{
+  [Dependency] var Transform : Transform;
+  
+  
+  var SpriteCog_ : Cog;
+  var SpriteCog : Cog
+  {
+    get
+    {
+      if (this.SpriteCog_ == null) this.SpriteCog_ = this.Owner.ChildrenArray[0];
+      return this.SpriteCog_;
+    }
+  }
+  
+  var ColliderCog_ : Cog;
+  var ColliderCog : Cog
+  {
+    get
+    {
+      if (this.ColliderCog_ == null) this.ColliderCog_ = this.Owner.ChildrenArray[1];
+      return this.ColliderCog_;
+    }
+  }
+  
+  
+  function Initialize(init : CogInitializer)
+  {
+    Zero.Connect(this.Owner, Events.PlacingStarted, this.OnPlacingStarted);
+    Zero.Connect(this.Owner, Events.PlacedAsStartPoint, this.OnPlacedAsStartPoint);
+    Zero.Connect(this.Owner, Events.PlacedAsEndPoint, this.OnPlacedAsEndPoint);
+    Zero.Connect(this.Owner, Events.PlacedAsPoint, this.OnPlacedAsPoint);
+    Zero.Connect(this.Owner, Events.ObjectShouldChangeColor, this.OnObjectShouldChangeColor);
+  }
+  
+  
+  function OnPlacedAsPoint(event : ShapeEvent)
+  {
+    var sprite = this.SpriteCog.Sprite;
+    sprite.Visible = true;
+    sprite.VertexColor = event.Color;
+    this.ColliderCog.Collider.Ghost = false;
+    this.Transform.WorldTranslation = event.Start;
+  }
+  
+  
+  function OnPlacedAsStartPoint(event : ShapeEvent)
+  {
+    var sprite = this.SpriteCog.Sprite;
+    sprite.Visible = true;
+    sprite.VertexColor = event.Color;
+    this.ColliderCog.Collider.Ghost = false;
+    this.Transform.WorldTranslation = event.Start;
+  }
+  
+  
+  function OnPlacedAsEndPoint(event : ShapeEvent)
+  {
+    var sprite = this.SpriteCog.Sprite;
+    sprite.Visible = true;
+    sprite.VertexColor = event.Color;
+    this.ColliderCog.Collider.Ghost = false;
+    this.Transform.WorldTranslation = event.End;
+  }
+  
+  
+  function OnObjectShouldChangeColor(event : ShapeEvent)
+  {
+    this.SpriteCog.Sprite.VertexColor = event.Color;
+  }
+  
+  
+  function OnPlacingStarted(event : ShapeEvent)
+  {
+    this.SpriteCog.Sprite.Visible = false;
+    this.ColliderCog.Collider.Ghost = true;
+  }
+}
+
+
+

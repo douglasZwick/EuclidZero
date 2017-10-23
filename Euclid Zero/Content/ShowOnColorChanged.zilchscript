@@ -1,0 +1,15 @@
+class ShowOnColorChanged : ZilchComponent
+{
+  function Initialize(init : CogInitializer)
+  {
+    Zero.Connect(this.Owner, Events.ColorChanged, this.OnColorChanged);
+  }
+  
+  
+  function OnColorChanged(event : HUDEvent)
+  {
+    var he = HiderEvent();
+    he.Temporary = true;
+    this.Owner.DispatchEvent(Events.ShowRequest, he);
+  }
+}

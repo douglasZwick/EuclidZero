@@ -1,0 +1,12 @@
+[Version:1]
+Material 
+{
+	var RenderGroups = Array
+	{
+		"590a375d5ae339d3:FlatAdditiveBlend"
+		"5961eaa40f1649f6:ZSort"
+	}
+	SpriteSourceColor 
+	{
+	}
+}

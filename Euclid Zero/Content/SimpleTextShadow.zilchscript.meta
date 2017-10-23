@@ -1,0 +1,9 @@
+[Version:1]
+TextContent 
+{
+	ZilchScriptBuilder 
+	{
+		var Name = "SimpleTextShadow"
+		var ResourceId = 0x59387d6894b8f6a9
+	}
+}

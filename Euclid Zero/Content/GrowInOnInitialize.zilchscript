@@ -1,0 +1,15 @@
+class GrowInOnInitialize : ZilchComponent
+{
+  [Dependency] var Transform : Transform;
+  
+  
+  [Property] var Duration : Real = 0.1;
+  
+  
+  function Initialize(init : CogInitializer)
+  {
+    var targetScale = this.Transform.LocalScale;
+    this.Transform.LocalScale = Real3.Zero;
+    Action.Property(this.Owner.Actions, @this.Transform.LocalScale, targetScale, this.Duration, Ease.QuadInOut);
+  }
+}

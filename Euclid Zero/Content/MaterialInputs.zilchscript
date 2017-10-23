@@ -1,0 +1,8 @@
+[RunInEditor]
+class MaterialInputs : ZilchComponent
+{
+  [Property][ShaderInput] var AlbedoValue : Real4 = Colors.White;
+  [Property][ShaderInput] var MetallicValue : Real = 0.2;
+  [Property][ShaderInput] var RoughnessValue : Real = 0.8;
+  [Property][ShaderInput] var SpecularValue : Real = 0.5;
+}

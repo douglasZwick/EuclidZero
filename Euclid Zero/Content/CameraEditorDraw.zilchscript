@@ -1,0 +1,31 @@
+[RunInEditor]
+class CameraEditorDraw : ZilchComponent
+{
+  [Dependency] var CameraViewport : CameraViewport;
+  
+  
+  [Property] var Active : Boolean = true;
+  
+  
+  function Initialize(init : CogInitializer)
+  {
+    if (this.Space.IsEditorMode)
+      Zero.Connect(this.Space, Events.FrameUpdate, this.OnFrameUpdate);
+    else
+      this.Owner.RemoveComponentByType(typeid(this));
+  }
+  
+  
+  function OnFrameUpdate(event : UpdateEvent)
+  {
+    if (!this.Active) return;
+    
+    this.Draw();
+  }
+  
+  
+  function Draw()
+  {
+    this.CameraViewport.DebugDraw();
+  }
+}

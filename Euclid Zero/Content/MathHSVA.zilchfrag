@@ -1,0 +1,28 @@
+struct MathHSVA
+{
+  [Static][Extension(typeid(Math))]
+  function HSVA(h : Real, s : Real, v : Real, a : Real) : Real4
+  {
+    h = 6.0 * Math.ZMod(h, 1.0);
+    var z = h as Integer;
+    var f = h - z;
+    var i = v * (1.0 - s);
+    var j = v * (1.0 - s * f);
+    var k = v * (1.0 - s * (1.0 - f));
+    
+    var gray = Real4(v, v, v, a);
+    var r = Real4(v, k, i, a);
+    var y = Real4(j, v, i, a);
+    var g = Real4(i, v, k, a);
+    var c = Real4(i, j, v, a);
+    var b = Real4(k, i, v, a);
+    var m = Real4(v, i, j, a);
+    
+    var c22 = Math.Select(z == 4, b, m);
+    var c21 = Math.Select(z == 3, c, c22);
+    var c12 = Math.Select(z == 1, y, g);
+    var c11 = Math.Select(z == 0, r, c12);
+    var c1  = Math.Select(z < 3, c11, c21);
+    return Math.Select(s == 0.0, gray, c1);
+  }
+}

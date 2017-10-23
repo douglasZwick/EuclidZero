@@ -1,0 +1,107 @@
+class Hider : ZilchComponent
+{
+  sends ShowRequest : HiderEvent;
+  sends HideRequest : HiderEvent;
+  sends ToggleVisibilityRequest : HiderEvent;
+  
+  
+  [Dependency] var Transform : Transform;
+  
+  
+  [Property] var HiddenPosition : Real3 = Real3(0.0, 5.0, 0.0);
+  [Property] var HiddenPositionIsRelative : Boolean = true;
+  [Property] var StartHidden : Boolean = true;
+  [Property] var MoveDuration : Real = 0.25;
+  [Property] var InterMoveDelay : Real = 3.0;
+  
+  var ShownPosition : Real3;
+  var Shown : Boolean;
+  
+  
+  function Initialize(init : CogInitializer)
+  {
+    this.ShownPosition = this.Transform.WorldTranslation;
+    
+    if (this.HiddenPositionIsRelative)
+      this.HiddenPosition += this.ShownPosition;
+    
+    if (this.StartHidden)
+      this.Transform.WorldTranslation = this.HiddenPosition;
+    
+    this.Shown = !this.StartHidden;
+    
+    Zero.Connect(this.Owner, Events.ShowRequest, this.OnShowRequest);
+    Zero.Connect(this.Owner, Events.HideRequest, this.OnHideRequest);
+    Zero.Connect(this.Owner, Events.ToggleVisibilityRequest, this.OnToggleVisibilityRequest);
+  }
+  
+  
+  function OnShowRequest(event : HiderEvent)
+  {
+    if (!this.Shown) this.Show(event);
+  }
+  
+  
+  function OnHideRequest(event : HiderEvent)
+  {
+    if (this.Shown) this.Hide(event);
+  }
+  
+  
+  function OnToggleVisibilityRequest(event : HiderEvent)
+  {
+    if (this.Shown) this.Hide(event);
+    else this.Show(event);
+  }
+  
+  
+  function Show(event : HiderEvent)
+  {
+    this.Shown = true;
+    
+    this.Owner.Actions.Cancel();
+    
+    var moveSeq = Action.Sequence(this.Owner.Actions);
+      Action.Property(moveSeq, @this.Transform.WorldTranslation,
+                      this.ShownPosition, this.MoveDuration, Ease.QuadInOut);
+      
+    if (event.Temporary)
+    {
+        Action.Delay(moveSeq, this.InterMoveDelay);
+        
+        Action.Property(moveSeq, @this.Transform.WorldTranslation,
+                        this.HiddenPosition, this.MoveDuration, Ease.QuadInOut);
+      
+      this.Shown = false;
+    }
+  }
+  
+  
+  function Hide(event : HiderEvent)
+  {
+    this.Shown = false;
+    
+    this.Owner.Actions.Cancel();
+    
+    var moveSeq = Action.Sequence(this.Owner.Actions);
+      Action.Property(moveSeq, @this.Transform.WorldTranslation,
+                      this.HiddenPosition, this.MoveDuration, Ease.QuadInOut);
+      
+    if (event.Temporary)
+    {
+        Action.Delay(moveSeq, this.InterMoveDelay);
+        
+        Action.Property(moveSeq, @this.Transform.WorldTranslation,
+                        this.ShownPosition, this.MoveDuration, Ease.QuadInOut);
+      
+      this.Shown = true;
+    }
+  }
+}
+
+
+class HiderEvent : ZilchEvent
+{
+  var Temporary : Boolean;
+  var Delay : Real;
+}

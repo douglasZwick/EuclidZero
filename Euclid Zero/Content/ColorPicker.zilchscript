@@ -1,0 +1,97 @@
+class ColorPicker : ZilchComponent
+{
+  [Property] var HCursorPath : CogPath = CogPath();
+  [Property] var SVCursorPath : CogPath = CogPath();
+  [Property] var SVRectHPath : CogPath = CogPath();
+  [Property] var HRectRainbowPath : CogPath = CogPath();
+  [Property] var SwatchRectPath : CogPath = CogPath();
+  [Property] var HDRTextPath : CogPath = CogPath();
+  
+  var MoveDuration : Real = 0.1;
+  
+  var HCursor : Cog { get { return this.HCursorPath.Cog; }}
+  var SVCursor : Cog { get { return this.SVCursorPath.Cog; }}
+  var SVRectH : Cog { get { return this.SVRectHPath.Cog; }}
+  var HRectRainbow : Cog { get { return this.HRectRainbowPath.Cog; }}
+  var SwatchRect : Cog { get { return this.SwatchRectPath.Cog; }}
+  var HDRText : Cog { get { return this.HDRTextPath.Cog; }}
+  
+  var HCursorYMin : Real { get { return this.HRectRainbow.Area.BottomLeft.Y; }}
+  var HCursorYMax : Real { get { return this.HRectRainbow.Area.TopRight.Y; }}
+  
+  var SVCursorXMin : Real { get { return this.SVRectH.Area.BottomLeft.X; }}
+  var SVCursorXMax : Real { get { return this.SVRectH.Area.TopRight.X; }}
+  var SVCursorYMin : Real { get { return this.SVRectH.Area.BottomLeft.Y; }}
+  var SVCursorYMax : Real { get { return this.SVRectH.Area.TopRight.Y; }}
+  
+  
+  function Initialize(init : CogInitializer)
+  {
+    Zero.Connect(this.Owner, Events.ColorChanged, this.OnColorChanged);
+  }
+  
+  
+  function OnColorChanged(event : HUDEvent)
+  {
+    var h = event.ColorH;
+    var s = event.ColorS;
+    var v = event.ColorV;
+    var hdr = event.ColorHDR;
+    var color = event.Color;
+    
+    this.MoveHCursor(h);
+    this.MoveSVCursor(s, v);
+    this.ColorSVRect(h);
+    this.ColorSwatch(color);
+    this.UpdateHDRText(hdr);
+  }
+  
+  
+  function MoveHCursor(h : Real)
+  {
+    var x = 0.0;
+    var y = Math.Lerp(this.HCursorYMin, this.HCursorYMax, h);
+    var z = this.HCursor.Transform.LocalTranslation.Z;
+    var pos = Real3(x, y, z);
+    
+    this.HCursor.Actions.Cancel();
+    
+    Action.Property(this.HCursor.Actions, @this.HCursor.Transform.LocalTranslation, pos, this.MoveDuration, Ease.Linear);
+  }
+  
+  
+  function MoveSVCursor(s : Real, v : Real)
+  {
+    var x = Math.Lerp(this.SVCursorXMin, this.SVCursorXMax, s);
+    var y = Math.Lerp(this.SVCursorYMin, this.SVCursorYMax, v);
+    var z = this.SVCursor.Transform.LocalTranslation.Z;
+    var pos = Real3(x, y, z);
+    
+    this.SVCursor.Actions.Cancel();
+    
+    Action.Property(this.SVCursor.Actions, @this.SVCursor.Transform.LocalTranslation, pos, this.MoveDuration, Ease.Linear);
+  }
+  
+  
+  function ColorSVRect(h : Real)
+  {
+    this.SVRectH.Actions.Cancel();
+    var svRectColor = Color.FromHsva(h, 1.0, 1.0, 1.0);
+    Action.Property(this.SVRectH.Actions, @this.SVRectH.Sprite.VertexColor, svRectColor, this.MoveDuration, Ease.Linear);
+  }
+  
+  
+  function ColorSwatch(color : Real4)
+  {
+    this.SwatchRect.Actions.Cancel();
+    Action.Property(this.SwatchRect.Actions, @this.SwatchRect.Sprite.VertexColor, color, this.MoveDuration, Ease.Linear);
+  }
+  
+  
+  function UpdateHDRText(hdr : Real)
+  {
+    var tse = TextShadowEvent();
+    tse.Text = String.FormatC("%.3f", hdr);
+    this.HDRText.DispatchEvent(Events.NewText, tse);
+  }
+}

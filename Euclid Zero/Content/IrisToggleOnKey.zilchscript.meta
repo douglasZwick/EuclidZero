@@ -1,0 +1,9 @@
+[Version:1]
+TextContent 
+{
+	ZilchScriptBuilder 
+	{
+		var Name = "IrisToggleOnKey"
+		var ResourceId = 0x59039775c13bb82b
+	}
+}

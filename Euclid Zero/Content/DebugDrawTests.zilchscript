@@ -1,0 +1,66 @@
+class DebugDrawTests : ZilchComponent
+{
+  var MousePosition : Real3;
+  
+  var T : Real = 0.0;
+  
+  
+  function Initialize(init : CogInitializer)
+  {
+    //Zero.Connect(this.Space, Events.LogicUpdate, this.OnLogicUpdate);
+  }
+  
+  
+  function OnLogicUpdate(event : UpdateEvent)
+  {
+    var clockwise = false;
+    
+    var o = Real3(3, -2, 0);
+    var p0 = Real3(2, 3, 0);
+    var edge0 = p0 - o;
+    var radius = Math.Length(edge0);
+    var p1 = Real3(10, 0, 0);
+    var edge1 = p1 - o;
+    var p1Corrected = radius * Math.Normalize(edge1) + o;
+    edge1 = p1Corrected - o;
+    
+    if (clockwise)
+    {
+      var temp = edge0;
+      edge0 = edge1;
+      edge1 = temp;
+    }
+    
+    var angle = Math.AngleBetween(edge0, edge1);
+    var halfAngle = angle / 2.0;
+    var edge0Angle = Math.Angle2D(edge0);
+    var midpointAngle = halfAngle + edge0Angle;
+    var midpoint = radius * Real3(Math.Cos(midpointAngle), Math.Sin(midpointAngle), 0) + o;
+    
+    var arc = DebugArc();
+    arc.Start = p0;
+    arc.Mid = midpoint;
+    arc.End = p1Corrected;
+    arc.Color = Colors.White;
+    DebugDraw.Add(arc);
+    
+    var ringColor = Colors.Red;
+    this.MakeRing(o, ringColor);
+    this.MakeRing(p0, ringColor);
+    this.MakeRing(p1, Colors.Blue);
+    this.MakeRing(midpoint, ringColor);
+    this.MakeRing(p1Corrected, ringColor);
+  }
+  
+  
+  function MakeRing(p : Real3, color : Real4)
+  {
+    debug return;
+    var radius = 0.2;
+    var circle = DebugCircle();
+    circle.Position = p;
+    circle.Radius = radius;
+    circle.Color = color;
+    DebugDraw.Add(circle);
+  }
+}

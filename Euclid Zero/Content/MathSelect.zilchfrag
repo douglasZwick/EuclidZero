@@ -1,0 +1,58 @@
+struct MathSelect
+{
+  [Static][Extension(typeid(Math))]
+  function Select(condition : Boolean, valueIfTrue : Real, valueIfFalse : Real) : Real
+  {
+    return Math.Lerp(valueIfFalse, valueIfTrue, condition as Real);
+  }
+  
+  [Static][Extension(typeid(Math))]
+  function Select(condition : Boolean2, valueIfTrue : Real2, valueIfFalse : Real2) : Real2
+  {
+    var x = Math.Select(condition.X, valueIfTrue.X, valueIfFalse.X);
+    var y = Math.Select(condition.Y, valueIfTrue.Y, valueIfFalse.Y);
+    
+    return Real2(x, y);
+  }
+  
+  [Static][Extension(typeid(Math))]
+  function Select(condition : Boolean3, valueIfTrue : Real3, valueIfFalse : Real3) : Real3
+  {
+    var x = Math.Select(condition.X, valueIfTrue.X, valueIfFalse.X);
+    var y = Math.Select(condition.Y, valueIfTrue.Y, valueIfFalse.Y);
+    var z = Math.Select(condition.Z, valueIfTrue.Z, valueIfFalse.Z);
+    
+    return Real3(x, y, z);
+  }
+  
+  [Static][Extension(typeid(Math))]
+  function Select(condition : Boolean4, valueIfTrue : Real4, valueIfFalse : Real4) : Real4
+  {
+    var x = Math.Select(condition.X, valueIfTrue.X, valueIfFalse.X);
+    var y = Math.Select(condition.Y, valueIfTrue.Y, valueIfFalse.Y);
+    var z = Math.Select(condition.Z, valueIfTrue.Z, valueIfFalse.Z);
+    var w = Math.Select(condition.W, valueIfTrue.W, valueIfFalse.W);
+    
+    return Real4(x, y, z, w);
+  }
+  
+  [Static][Extension(typeid(Math))]
+  function Select(condition : Boolean, valueIfTrue : Real2, valueIfFalse : Real2) : Real2
+  {
+    var x = Math.Select(condition, valueIfTrue.X, valueIfFalse.X);
+    var y = Math.Select(condition, valueIfTrue.Y, valueIfFalse.Y);
+    
+    return Real2(x, y);
+  }
+  
+  [Static][Extension(typeid(Math))]
+  function Select(condition : Boolean, valueIfTrue : Real4, valueIfFalse : Real4) : Real4
+  {
+    var x = Math.Select(condition, valueIfTrue.X, valueIfFalse.X);
+    var y = Math.Select(condition, valueIfTrue.Y, valueIfFalse.Y);
+    var z = Math.Select(condition, valueIfTrue.Z, valueIfFalse.Z);
+    var w = Math.Select(condition, valueIfTrue.W, valueIfFalse.W);
+    
+    return Real4(x, y, z, w);
+  }
+}

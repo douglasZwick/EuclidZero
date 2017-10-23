@@ -1,0 +1,18 @@
+struct MathZMod
+{
+  // Modulo the way it SHOULD be
+  [Static][Extension(typeid(Math))]
+  function ZMod(a : Integer, b : Integer) : Integer
+  {
+    var modPrime = Math.Select(b >= 0, a % b, a % -b);
+    return Math.Select(modPrime >= 0, modPrime, modPrime + b) as Integer;
+  }
+  
+  // Modulo the way it SHOULD be
+  [Static][Extension(typeid(Math))]
+  function ZMod(a : Real, b : Real) : Real
+  {
+    var modPrime = Math.Select(b >= 0.0, Math.FMod(a, b), Math.FMod(a, -b));
+    return Math.Select(modPrime >= 0.0, modPrime, modPrime + b);
+  }
+}

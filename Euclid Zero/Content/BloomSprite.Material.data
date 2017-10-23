@@ -1,0 +1,12 @@
+[Version:1]
+Material 
+{
+	var RenderGroups = Array
+	{
+		"5961eaa40f1649f6:ZSort"
+		"5905774cc0c3a3fd:BloomSprite"
+	}
+	SpriteSourceColor 
+	{
+	}
+}

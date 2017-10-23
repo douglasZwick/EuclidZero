@@ -1,0 +1,9 @@
+[Version:1]
+TextContent 
+{
+	ZilchScriptBuilder 
+	{
+		var Name = "IrisMaster"
+		var ResourceId = 0x5903eac02161f36b
+	}
+}

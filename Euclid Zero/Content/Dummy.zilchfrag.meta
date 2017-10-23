@@ -1,0 +1,9 @@
+[Version:1]
+TextContent 
+{
+	ZilchFragmentBuilder 
+	{
+		var Name = "Dummy"
+		var ResourceId = 0x590af709ce02ac45
+	}
+}

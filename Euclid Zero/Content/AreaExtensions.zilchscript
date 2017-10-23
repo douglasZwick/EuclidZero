@@ -1,0 +1,38 @@
+class AreaExtensions
+{
+  [Extension(typeid(Area))]
+  var WorldTopLeft : Real3
+  { get { return this.Owner.Transform.TransformPoint(Real3(this.TopLeft, 0.0)); }}
+  
+  [Extension(typeid(Area))]
+  var WorldTopCenter : Real3
+  { get { return this.Owner.Transform.TransformPoint(Real3(this.TopCenter, 0.0)); }}
+  
+  [Extension(typeid(Area))]
+  var WorldTopRight : Real3
+  { get { return this.Owner.Transform.TransformPoint(Real3(this.TopRight, 0.0)); }}
+  
+  [Extension(typeid(Area))]
+  var WorldCenterLeft : Real3
+  { get { return this.Owner.Transform.TransformPoint(Real3(this.CenterLeft, 0.0)); }}
+  
+  [Extension(typeid(Area))]
+  var WorldCenter : Real3
+  { get { return this.Owner.Transform.TransformPoint(Real3(this.Center, 0.0)); }}
+  
+  [Extension(typeid(Area))]
+  var WorldCenterRight : Real3
+  { get { return this.Owner.Transform.TransformPoint(Real3(this.CenterRight, 0.0)); }}
+  
+  [Extension(typeid(Area))]
+  var WorldBottomLeft : Real3
+  { get { return this.Owner.Transform.TransformPoint(Real3(this.BottomLeft, 0.0)); }}
+  
+  [Extension(typeid(Area))]
+  var WorldBottomCenter : Real3
+  { get { return this.Owner.Transform.TransformPoint(Real3(this.BottomCenter, 0.0)); }}
+  
+  [Extension(typeid(Area))]
+  var WorldBottomRight : Real3
+  { get { return this.Owner.Transform.TransformPoint(Real3(this.BottomRight, 0.0)); }}
+}

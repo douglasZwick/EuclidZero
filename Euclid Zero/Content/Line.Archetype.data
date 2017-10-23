@@ -1,0 +1,15 @@
+[Version:1]
+Cog [InheritId:"5903bc3e444e3a87:LinearObject"]
+{
+	var Name = "Line"
+	Transform 
+	{
+		var Translation = Real3{0, 0, 0}
+		var Rotation = Quaternion{0, 0, 0, 1}
+		var Scale = Real3{1, 1, 1}
+	}
+	LinearObject 
+	{
+		var Type = LinearObjectType.Line
+	}
+}

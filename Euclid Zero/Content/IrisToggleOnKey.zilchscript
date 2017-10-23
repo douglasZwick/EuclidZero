@@ -1,0 +1,57 @@
+class IrisToggleOnKey : ZilchComponent
+{
+  [Property] var Key : Keys = Keys.Space;
+  [Property] var CloseTexture : Texture = Texture.BowserFace64;
+  [Property] var OpenTexture : Texture = Texture.WhiteStar64;
+  [Property] var Color : Real4 = Colors.Black;
+  [Property] var CloseDuration : Real = 2.5;
+  [Property] var OpenDuration : Real = 1.0;
+  
+  var Closed : Boolean = false;
+  
+  
+  function Initialize(init : CogInitializer)
+  {
+    Zero.Connect(Zero.Keyboard, Events.KeyDown, this.OnKeyDown);
+  }
+  
+  
+  function OnKeyDown(event : KeyboardEvent)
+  {
+    if (event.Key == this.Key)
+    {
+      this.Toggle();
+    }
+  }
+  
+  
+  function Toggle()
+  {
+    if (this.Closed)
+      this.OpenIris();
+    else
+      this.CloseIris();
+    
+    this.Closed = !this.Closed;
+  }
+  
+  
+  function OpenIris()
+  {
+    var ie = IrisEvent();
+    ie.Texture = this.OpenTexture;
+    ie.Color = this.Color;
+    ie.Duration = this.OpenDuration;
+    this.GameSession.DispatchEvent(Events.IrisOpenRequest, ie);
+  }
+  
+  
+  function CloseIris()
+  {
+    var ie = IrisEvent();
+    ie.Texture = this.CloseTexture;
+    ie.Color = this.Color;
+    ie.Duration = this.CloseDuration;
+    this.GameSession.DispatchEvent(Events.IrisCloseRequest, ie);
+  }
+}

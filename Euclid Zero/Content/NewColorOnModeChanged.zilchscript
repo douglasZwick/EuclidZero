@@ -1,0 +1,15 @@
+class NewColorOnModeChanged : ZilchComponent
+{
+  function Initialize(init : CogInitializer)
+  {
+    Zero.Connect(this.Owner, Events.ModeChanged, this.OnModeChanged);
+  }
+  
+  
+  function OnModeChanged(event : HUDEvent)
+  {
+    var tse = TextShadowEvent();
+    tse.Color = ObjectDrawer.ModeColors[event.Mode];
+    this.Owner.DispatchEvent(Events.NewColor, tse);
+  }
+}

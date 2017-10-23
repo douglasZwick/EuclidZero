@@ -1,0 +1,18 @@
+[Pixel]
+struct VRainbow
+{
+  [Input] var UvAux : Real2;
+  [FragmentInput][StageInput] var Uv : Real2;
+  [FragmentInput][StageInput][Output] var Color : Real4;
+  
+  
+  function Main()
+  {
+    var h = 1.0 - this.UvAux.Y;
+    var s = 1.0;
+    var v = 1.0;
+    var a = 1.0;
+    
+    this.Color = this.Color * Math.HSVA(h, s, v, a);
+  }
+}

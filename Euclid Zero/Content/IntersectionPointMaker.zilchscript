@@ -1,0 +1,91 @@
+class IntersectionPointMaker : ZilchComponent
+{
+  [Dependency] var Transform : Transform;
+  [Dependency] var ObjectBase : ObjectBase;
+  
+  
+  [Property] var PointArchetype : Archetype = Archetype.Point;
+  
+  
+  function Initialize(init : CogInitializer)
+  {
+    Zero.Connect(this.Owner, Events.RenderingComplete, this.OnRenderingComplete);
+  }
+  
+  
+  function OnRenderingComplete(event : ShapeEvent)
+  {
+    if (this.ObjectBase.Type == BaseType.Line)
+    {
+      var thisLinear = this.Owner.LinearObject;
+      var thisCollider = thisLinear.ColliderCog.Collider;
+      var contacts = thisCollider.Contacts;
+      
+      if (contacts.IsEmpty) return;
+      
+      var thisP0 = thisLinear.Line.Start;
+      var thisP1 = thisLinear.Line.End;
+      var thisLine = thisP1 - thisP0;
+      var thisDirection = Math.Normalize(thisLine);
+      var thisColor = thisLinear.Color;
+      
+      foreach (var contact in contacts)
+      {
+        var obj = contact.OtherObject.FindRoot();
+        var objectBase = obj.ObjectBase;
+        
+        if (objectBase != null)
+        {
+          if (objectBase.Type == BaseType.Line)
+          {
+            var thatLinear = obj.LinearObject;
+            var thatP0 = thatLinear.Line.Start;
+            var thatP1 = thatLinear.Line.End;
+            var thatLine = thatP1 - thatP0;
+            var thatDirection = Math.Normalize(thatLine);
+            var thatColor = thatLinear.Color;
+            
+            // TODO:
+            // 
+            // probably wanna replace this with Math.ApproximatelyEqual,
+            // since it's quite unlikely that these would ever come up
+            // as equal with the == operator
+            var equalDirection = Math.ApproximatelyEqualReal3(thisDirection, thatDirection, 0.002);
+            var oppositeDirection = Math.ApproximatelyEqualReal3(thisDirection, -thatDirection, 0.002);
+            if (equalDirection || oppositeDirection)
+              continue;
+            
+            var thisCrossThat = Math.Cross(thisLine.XY, thatLine.XY);
+            var p0difference = thatP0 - thisP0;
+            var t = Math.Cross(p0difference.XY, thatLine.XY / thisCrossThat);
+            var u = Math.Cross(p0difference.XY, thisLine.XY / thisCrossThat);
+            
+            var tInRange = 0.0 <= t && t <= 1.0;
+            var uInRange = 0.0 <= u && u <= 1.0;
+            if (thisCrossThat == 0.0 || !tInRange || !uInRange)
+              continue;
+            
+            var intersectionPoint = thisP0 + t * thisLine;
+            
+            var point = this.Space.CreateAtPosition(this.PointArchetype, intersectionPoint);
+            
+            //var thisHsva = Color.ToHsva(thisColor);
+            //var thatHsva = Color.ToHsva(thatColor);
+            //var pointHsva = (thisHsva + thatHsva) / 2.0;
+            
+            //if (Math.Abs(thisHsva.X - thatHsva.X) > 0.5)
+            //  pointHsva.X -= 0.5;
+            
+            //var pointColor = Color.FromHsva(pointHsva);
+            var pointColor = (thisColor + thatColor) / 2.0;
+            
+            var se = ShapeEvent();
+            se.Color = pointColor;
+            se.Start = intersectionPoint;
+            point.DispatchEvent(Events.PlacedAsPoint, se);
+          }
+        }
+      }
+    }
+  }
+}

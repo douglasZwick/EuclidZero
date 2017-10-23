@@ -1,0 +1,23 @@
+class RayCastTester : ZilchComponent
+{
+  function Initialize(init : CogInitializer)
+  {
+    Zero.Connect(this.Space, Events.LogicUpdate, this.OnLogicUpdate);
+  }
+
+  function OnLogicUpdate(event : UpdateEvent)
+  {
+    if (Zero.Keyboard.KeyIsPressed(Keys.R))
+    {
+      Print("TESTING:");
+      
+      var start = Real3.ZAxis * 5.0;
+      var direction = -Real3.ZAxis;
+      var ray = Ray(start, direction);
+      var results = this.Space.PhysicsSpace.CastRay(ray, 12);
+      
+      foreach (var result in results)
+        Print(result.ObjectHit);
+    }
+  }
+}

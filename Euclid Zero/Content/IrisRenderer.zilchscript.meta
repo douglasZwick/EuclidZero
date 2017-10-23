@@ -1,0 +1,9 @@
+[Version:1]
+TextContent 
+{
+	ZilchScriptBuilder 
+	{
+		var Name = "IrisRenderer"
+		var ResourceId = 0x5903c7df657f7e03
+	}
+}

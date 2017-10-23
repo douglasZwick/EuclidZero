@@ -1,0 +1,124 @@
+class SimpleTextShadow : ZilchComponent
+{
+  sends NewText : TextShadowEvent;
+  sends NewColor : TextShadowEvent;
+  
+  
+  [Dependency] var ST : SpriteText;
+  
+  
+  [Property] var ShadowArchetype : Archetype = Archetype.SpriteText;
+  [Property] var Color : Real4 = Real4(0.1, 0.1, 0.1, 0.8);
+  [Property] var PercentOffset : Real3 = Real3(5.0, -5.0, -5.0);
+  
+  var Shadow : Cog;
+  
+  var ShadowST_ : SpriteText;
+  var CheckedForShadowST : Boolean = false;
+  var ShadowST : SpriteText
+  {
+    get
+    {
+      if (!this.CheckedForShadowST)
+      {
+        this.CheckedForShadowST = true;
+        this.ShadowST_ = this.Shadow.SpriteText;
+      }
+      
+      return this.ShadowST_;
+    }
+  }
+  
+  var Area_ : Area;
+  var CheckedForArea : Boolean = false;
+  var Area : Area
+  {
+    get
+    {
+      if (!this.CheckedForArea)
+      {
+        this.CheckedForArea = true;
+        this.Area_ = this.Owner.Area;
+      }
+      
+      return this.Area_;
+    }
+  }
+  
+  var ShadowArea_ : Area;
+  var CheckedForShadowArea : Boolean = false;
+  var ShadowArea : Area
+  {
+    get
+    {
+      if (!this.CheckedForShadowArea)
+      {
+        this.CheckedForShadowArea = true;
+        this.ShadowArea_ = this.Shadow.Area;
+      }
+      
+      return this.ShadowArea_;
+    }
+  }
+  
+  
+  function Initialize(init : CogInitializer)
+  {
+    var height = this.ST.FontSize as Real / this.ST.PixelsPerUnit as Real;
+    var offset = height * this.PercentOffset / 100.0;
+    this.Shadow = this.Space.CreateAtPosition(this.ShadowArchetype, offset);
+    
+    if (this.Area != null)
+      this.Shadow.AddComponentByName("Area");
+    
+    this.CopyAllProperties();
+    this.ShadowST.VertexColor = this.Color;
+    
+    this.Shadow.AttachToPreserveLocal(this.Owner);
+    
+    Zero.Connect(this.Owner, Events.NewText, this.OnNewText);
+    Zero.Connect(this.Owner, Events.NewColor, this.OnNewColor);
+  }
+  
+  
+  function OnNewText(event : TextShadowEvent)
+  {
+    this.ST.Text = event.Text;
+    this.ShadowST.Text = event.Text;
+  }
+  
+  
+  function OnNewColor(event : TextShadowEvent)
+  {
+    this.ST.VertexColor = event.Color;
+  }
+  
+  
+  function CopyAllProperties()
+  {
+    this.ShadowST.Visible             = this.ST.Visible;
+    this.ShadowST.ViewCulling         = this.ST.ViewCulling;
+    this.ShadowST.VisibilityEvents    = this.ST.VisibilityEvents;
+    this.ShadowST.OverrideBoundingBox = this.ST.OverrideBoundingBox;
+    this.ShadowST.Material            = this.ST.Material;
+    this.ShadowST.GeometryMode        = this.ST.GeometryMode;
+    this.ShadowST.Text                = this.ST.Text;
+    this.ShadowST.Font                = this.ST.Font;
+    this.ShadowST.FontSize            = this.ST.FontSize;
+    this.ShadowST.PixelsPerUnit       = this.ST.PixelsPerUnit;
+    this.ShadowST.TextAlign           = this.ST.TextAlign;
+    
+    if (this.Area != null)
+    {
+      this.ShadowArea.Origin = this.Area.Origin;
+      this.ShadowArea.Size   = this.Area.Size;
+    }
+  }
+}
+
+
+class TextShadowEvent : ZilchEvent
+{
+  var Text : String;
+  var Color : Real4;
+}

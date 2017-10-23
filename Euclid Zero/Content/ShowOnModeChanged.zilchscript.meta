@@ -1,0 +1,9 @@
+[Version:1]
+TextContent 
+{
+	ZilchScriptBuilder 
+	{
+		var Name = "ShowOnModeChanged"
+		var ResourceId = 0x59386db3d1df0a41
+	}
+}

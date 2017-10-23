@@ -1,0 +1,15 @@
+class ShowOnModeChanged : ZilchComponent
+{
+  function Initialize(init : CogInitializer)
+  {
+    Zero.Connect(this.Owner, Events.ModeChanged, this.OnModeChanged);
+  }
+  
+  
+  function OnModeChanged(event : HUDEvent)
+  {
+    var he = HiderEvent();
+    he.Temporary = true;
+    this.Owner.DispatchEvent(Events.ShowRequest, he);
+  }
+}

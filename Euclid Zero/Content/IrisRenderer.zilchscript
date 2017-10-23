@@ -1,0 +1,40 @@
+[RunInEditor]
+class IrisRenderer : ZilchComponent
+{
+  [Dependency] var RenderScheduler : RenderScheduler;
+  
+  
+  [Property] var Active : Boolean = true;
+  [Property] var IrisTexture : Texture = Texture.SoftCircle256;
+  [Property] var IrisColor : Real4 = Colors.Black;
+  // Range: [0, 100]. The iris is fully open at 0 and fully closed at 100
+  [Property] var PercentClosed : Real = 0.0;
+  
+  
+  function Initialize(init : CogInitializer)
+  {
+    Zero.Connect(this.Owner, Events.PostProcessRenderUpdate, this.OnPostProcessRenderUpdate);
+  }
+  
+  
+  function OnPostProcessRenderUpdate(event : RenderScheduleEvent)
+  {
+    if (!this.Active || this.PercentClosed == 0.0) return;
+    
+    var viewportSize = event.ViewportSize;
+    
+    var final = event.Event.GetFinalTarget(viewportSize, TextureFormat.RGBA8, event.SamplerSettings);
+    var sceneTarget = event.Event.GetRenderTarget(final.Texture.Size, final.Texture.Format, event.SamplerSettings);
+    
+    var iris = Iris();
+    iris.SceneTexture = final.Texture;
+    iris.IrisTexture = this.IrisTexture;
+    iris.IrisColor = this.IrisColor;
+    iris.Scale = 2.0 * (this.PercentClosed / 100.0) - 1.0;
+    event.Event.AddRenderTaskPostProcess(sceneTarget, iris);
+    
+    var copyTarget = CopyTarget();
+    copyTarget.Texture = sceneTarget.Texture;
+    event.Event.AddRenderTaskPostProcess(final, copyTarget);
+  }
+}

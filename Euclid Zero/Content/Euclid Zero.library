@@ -1,0 +1,8 @@
+[Version:1]
+ContentLibrary 
+{
+	var Name = "Euclid Zero"
+	var LibraryId = 0x592cfeb01a85b991
+	var SourceControlType = ""
+	var ReadOnly = false
+}

@@ -1,0 +1,131 @@
+class CircularObject : ZilchComponent
+{
+  [Dependency] var ObjectBase : ObjectBase;
+  
+  
+  [Property] var Type : CircularObjectType = CircularObjectType.Arc;
+  [Property] var Color : Real4 = Colors.Blue;
+  [Property] var DrawDuration : Real = 1.0;
+  [Property] var GhostArcPulsePeriod : Real = 1.0;
+  [Property] var RenderGhostArchetype : Archetype = Archetype.RenderGhost;
+  [Property] var RenderGhostFadeDuration : Real = 0.1;
+  
+  var T_ : Real = 0.0;
+  var T : Real
+  {
+    get { return this.T_; }
+    
+    set
+    {
+      var dt = value - this.T_;
+      
+      this.T_ = value;
+      
+      
+    }
+  }
+  
+  var Arc : DebugArc = DebugArc();
+  
+  var O_ : Cog;
+  var P0_ : Cog;
+  var P1_ : Cog;
+  var ColliderCog_ : Cog;
+  
+  var O : Cog
+  {
+    get
+    {
+      if (this.O_ == null) this.O_ = this.Owner.ChildrenArray[0];
+      return this.O_;
+    }
+  }
+  
+  var P0 : Cog
+  {
+    get
+    {
+      if (this.P0_ == null) this.P0_ = this.Owner.ChildrenArray[1];
+      return this.P0_;
+    }
+  }
+  
+  var P1 : Cog
+  {
+    get
+    {
+      if (this.P1_ == null) this.P1_ = this.Owner.ChildrenArray[2];
+      return this.P1_;
+    }
+  }
+  
+  var ColliderCog : Cog
+  {
+    get
+    {
+      if (this.ColliderCog_ == null) this.ColliderCog_ = this.Owner.ChildrenArray[3];
+      return this.ColliderCog_;
+    }
+  }
+  
+  
+  function Initialize(init : CogInitializer)
+  {
+    this.BeginDrawing();
+    
+    Zero.Connect(this.Space, Events.LogicUpdate, this.OnLogicUpdate);
+  }
+  
+  
+  function OnLogicUpdate(event : UpdateEvent)
+  {
+    var start = Real3();
+    var mid = Real3();
+    var end = Real3();
+    
+    if (this.Type == CircularObjectType.Arc)
+    {
+      if (this.T < 0.0)
+      {
+        
+      }
+      else
+      {
+        
+      }
+    }
+    else // this.Type == CircularObjectType.Circle
+    {
+      if (this.T < 0.0)
+      {
+        
+      }
+      else
+      {
+        
+      }
+    }
+    
+    this.Arc.Start = start;
+    this.Arc.Mid = mid;
+    this.Arc.End = end;
+    this.Arc.Color = this.Color;
+    
+    DebugDraw.Add(this.Arc);
+  }
+  
+  
+  function BeginDrawing()
+  {
+    this.Owner.Actions.Cancel();
+    
+    Action.Property(this.Owner.Actions, @this.T, 1.0, this.DrawDuration, Ease.QuadInOut);
+  }
+}
+
+
+enum CircularObjectType
+{
+  Arc,
+  Circle,
+}

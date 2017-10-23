@@ -1,0 +1,9 @@
+[Version:1]
+TextContent 
+{
+	ZilchScriptBuilder 
+	{
+		var Name = "GrowInOnInitialize"
+		var ResourceId = 0x590ab284c1f4e6e7
+	}
+}

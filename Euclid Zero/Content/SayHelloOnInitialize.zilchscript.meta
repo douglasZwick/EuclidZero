@@ -1,0 +1,9 @@
+[Version:1]
+TextContent 
+{
+	ZilchScriptBuilder 
+	{
+		var Name = "SayHelloOnInitialize"
+		var ResourceId = 0x59045a47cfe1b6c7
+	}
+}

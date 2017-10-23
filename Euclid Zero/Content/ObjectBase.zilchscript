@@ -1,0 +1,13 @@
+class ObjectBase : ZilchComponent
+{
+  [Property] var Type : BaseType;
+}
+
+
+enum BaseType
+{
+  Point,
+  Line,
+  Circle,
+  Arc,
+}

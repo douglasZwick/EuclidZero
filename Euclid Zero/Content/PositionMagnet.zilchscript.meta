@@ -1,0 +1,9 @@
+[Version:1]
+TextContent 
+{
+	ZilchScriptBuilder 
+	{
+		var Name = "PositionMagnet"
+		var ResourceId = 0x590048d0936e93c1
+	}
+}

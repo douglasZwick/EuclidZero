@@ -1,0 +1,645 @@
+class ObjectDrawer : ZilchComponent
+{
+  sends Placing0Complete : ShapeEvent;
+  sends Placing1Complete : ShapeEvent;
+  sends Placing2Complete : ShapeEvent;
+  sends PlacedAsPoint : ShapeEvent;
+  sends ChoosingDirectionComplete : ShapeEvent;
+  sends ObjectShouldChangeColor : ShapeEvent;
+  
+  
+  [Static] var ModeNames = HashMap[DrawingMode, String]()
+  {
+    { DrawingMode.Point,   "Points"        },
+    { DrawingMode.Segment, "Line Segments" },
+    { DrawingMode.Ray,     "Rays"          },
+    { DrawingMode.Line,    "Lines"         },
+    { DrawingMode.Arc,     "Arcs"          },
+    { DrawingMode.Circle,  "Circles"       },
+  };
+  
+  [Static] var ModeColors = HashMap[DrawingMode, Real4]()
+  {
+    { DrawingMode.Point,   Real4(0.9, 0.9, 0.9, 0.75) },
+    { DrawingMode.Segment, Real4(0.9, 0.1, 0.3, 0.75) },
+    { DrawingMode.Ray,     Real4(0.9, 0.8, 0.1, 0.75) },
+    { DrawingMode.Line,    Real4(0.1, 0.8, 0.6, 0.75) },
+    { DrawingMode.Arc,     Real4(0.1, 0.7, 0.8, 0.75) },
+    { DrawingMode.Circle,  Real4(0.1, 0.3, 0.9, 0.75) },
+  };
+  
+  [Static]
+  var StateAllowsModeChanges : HashMap[DrawingState, Boolean] = HashMap[DrawingState, Boolean]()
+  {
+    { DrawingState.Idle, true },
+    { DrawingState.Placing0, false },
+    { DrawingState.Placing1, false },
+    { DrawingState.Placing2, false },
+    { DrawingState.ChoosingDirection, false },
+    { DrawingState.Rendering, true },
+  };
+  
+  [Static]
+  var StateAllowsColorChange : HashMap[DrawingState, Boolean] = HashMap[DrawingState, Boolean]()
+  {
+    { DrawingState.Idle, true },
+    { DrawingState.Placing0, true },
+    { DrawingState.Placing1, true },
+    { DrawingState.Placing2, true },
+    { DrawingState.ChoosingDirection, true },
+    { DrawingState.Rendering, false },
+  };
+  
+  
+  var Mode : DrawingMode = DrawingMode.Point;
+  var State : DrawingState = DrawingState.Idle;
+  var HUDSpace : Space;
+  var ModeKey : Keys = Keys.Tab;
+  var HScrollSpeed : Real = 5.0 / 360.0;
+  var SScrollSpeed : Real = 1.0 / 16.0;
+  var VScrollSpeed : Real = 1.0 / 16.0;
+  var HDRScrollSpeed : Real = 1.0 / 16.0;
+  var Color : Real4 = Real4(5,5,0,1);
+  var ColorH : Real;
+  var ColorS : Real;
+  var ColorV : Real;
+  var ColorA : Real;
+  var ColorHDR : Real;
+  var SKey : Keys = Keys.Shift;
+  var VKey : Keys = Keys.Control;
+  var HDRKey : Keys = Keys.Alt;
+  
+  //var UndoKey : Keys = Keys.Z;
+  //var UndoModifier : Keys = Keys.Control;
+  //var RedoKey : Keys = Keys.Y;
+  //var RedoModifier : Keys = Keys.Control;
+  
+  var GhostPointArchetype : Archetype = Archetype.GhostPoint;
+  var PointArchetype : Archetype = Archetype.Point;
+  var SegmentArchetype : Archetype = Archetype.Segment;
+  var RayArchetype : Archetype = Archetype.Ray;
+  var LineArchetype : Archetype = Archetype.Line;
+  var ArcArchetype : Archetype = Archetype.Arc;
+  var CircleArchetype : Archetype = Archetype.Circle;
+  
+  var CanChangeMode : Boolean { get { return ObjectDrawer.StateAllowsModeChanges[this.State]; }}
+  var CanChangeColors : Boolean { get { return ObjectDrawer.StateAllowsColorChange[this.State]; }}
+  
+  var Ghosts : Array[Cog] = Array[Cog]();
+  var CurrentGhost : Cog;
+  var MagnetCastFilter : CastFilter;
+  var DisablePointSnappingKey : Keys = Keys.Control;
+  var DisableNonPointSnappingKey : Keys = Keys.Shift;
+  
+  var CurrentLinear : Cog;
+  
+  //var OperationQueue : OperationQueue;
+  
+  var MousePosition : Real3;
+  var Point0 : Real3;
+  var Point1 : Real3;
+  var Point2 : Real3;
+  
+  var Connected : Boolean = false;
+  
+  
+  function Initialize(init : CogInitializer)
+  {
+    var hsva = Color.ToHsva(this.Color);
+    this.ColorH = hsva.X;
+    this.ColorS = hsva.Y;
+    this.ColorV = hsva.Z;
+    this.ColorA = hsva.W;
+    this.ColorHDR = this.ColorV;
+    if (this.ColorV > 1.0) this.ColorV = 1.0;
+    
+    //this.OperationQueue = Zero.Editor.OperationQueue;
+    
+    this.BeginIdle();
+    
+    this.MagnetCastFilter = CastFilter();
+    this.MagnetCastFilter.IgnoreGhost = true;
+    this.MagnetCastFilter.IgnoreStatic = false;
+    
+    this.HUDSpace = this.GameSession.CreateNamedSpace("HUDSpace", Archetype.DefaultSpace);
+    this.HUDSpace.LoadLevel(Level.HUDLevel);
+    
+    var he = HUDEvent();
+    he.Mode = this.Mode;
+    he.Color = this.Color;
+    he.ColorH = this.ColorH;
+    he.ColorS = this.ColorS;
+    he.ColorV = this.ColorV;
+    he.ColorA = this.ColorA;
+    he.ColorHDR = this.ColorHDR;
+    this.GameSession.DispatchEvent(Events.ModeChanged, he);
+    this.GameSession.DispatchEvent(Events.ColorChanged, he);
+    
+    Zero.Connect(this.Space, Events.MouseUpdate, this.OnMouseUpdate);
+    Zero.Connect(this.Space, Events.MouseScroll, this.OnMouseScroll);
+    Zero.Connect(Zero.Keyboard, Events.KeyDown, this.OnKeyDown);
+    Zero.Connect(this.Owner, Events.CogDestroy, this.OnCogDestroy);
+    Zero.Connect(this.Space, Events.LeftMouseDown, this.OnLeftMouseDown);
+    Zero.Connect(this.Space, Events.LeftMouseUp, this.OnLeftMouseUp);
+    
+    //Zero.Connect(this.Space, Events.LogicUpdate, this.OnLogicUpdate);
+  }
+  
+  
+  function OnLogicUpdate(event : UpdateEvent)
+  {
+    if (this.CurrentGhost != null)
+      Print(this.CurrentGhost.Transform.WorldTranslation);
+  }
+  
+  
+  function OnMouseUpdate(event : ViewportMouseEvent)
+  {
+    var mousePosition = event.ToWorldZPlane(0.0);
+    this.MousePosition = mousePosition;
+    
+    if (this.State == DrawingState.Placing0)
+    {
+      var finalMousePosition = this.CalculateFinalMousePosition(mousePosition, event.WorldRay);
+      
+      this.CurrentGhost.Transform.WorldTranslation = finalMousePosition;
+    }
+    else if (this.State == DrawingState.Placing1)
+    {
+      var finalMousePosition = this.CalculateFinalMousePosition(mousePosition, event.WorldRay);
+      
+      this.CurrentGhost.Transform.WorldTranslation = finalMousePosition;
+      this.CurrentLinear.LinearObject.P1.Transform.WorldTranslation = finalMousePosition;
+    }
+  }
+  
+  
+  function CalculateFinalMousePosition(inputPosition : Real3, worldRay : Ray) : Real3
+  {
+    var excludePoints = Zero.Keyboard.KeyIsDown(this.DisablePointSnappingKey);
+    var excludeNonPoints = Zero.Keyboard.KeyIsDown(this.DisableNonPointSnappingKey);
+    
+    if (excludePoints && excludeNonPoints)
+    {
+      return inputPosition;
+    }
+    else
+    {
+      var castResults = this.Space.PhysicsSpace.CastRay(worldRay, 12, this.MagnetCastFilter);
+      var magnets = Array[Cog]();
+      
+      foreach (var result in castResults)
+      {
+        var obj = result.ObjectHit;
+        
+        if (obj.PositionMagnet != null)
+        {
+          var objectBase = obj.PositionMagnet.ObjectBase;
+          
+          if (objectBase.Type == BaseType.Point)
+          {
+            if (excludePoints)
+              continue;
+          }
+          else
+          {
+            if (excludeNonPoints)
+              continue;
+          }
+          
+          magnets.Add(obj);
+        }
+      }
+      
+      var result = inputPosition;
+      
+      if (magnets.Count > 0)
+      {
+        // TODO:
+        // 
+        // figure out how to handle multiple magnets. for now, just use the first one
+        //p1Position = magnets[0].Transform.WorldTranslation;
+        result = magnets[0].PositionMagnet.GetSnapPosition(inputPosition);
+      }
+      
+      return result;
+    }
+  }
+  
+  
+  function OnLeftMouseDown(event : ViewportMouseEvent)
+  {
+    var mousePosition = event.ToWorldZPlane(0.0);
+    
+    if (this.State == DrawingState.Idle)
+    {
+      if (this.Mode == DrawingMode.Point   ||
+          this.Mode == DrawingMode.Segment ||
+          this.Mode == DrawingMode.Ray     ||
+          this.Mode == DrawingMode.Line)
+        this.BeginPlacing0();
+    }
+  }
+  
+  
+  function OnLeftMouseUp(event : ViewportMouseEvent)
+  {
+    var mousePosition = event.ToWorldZPlane(0.0);
+    
+    if (this.State == DrawingState.Placing0)
+    {
+      if (this.Mode == DrawingMode.Point)
+      {
+        //this.OperationQueue.BeginBatch();
+        
+        var position = this.CurrentGhost.Transform.WorldTranslation;
+        
+        this.EndPlacing0();
+        
+        this.Point0 = position;
+        
+        var point = this.Space.CreateAtPosition(this.PointArchetype, position);
+        //this.OperationQueue.ObjectCreated(point);
+        //this.OperationQueue.SaveObjectState(point);
+        var se = ShapeEvent();
+        se.Start = this.Point0;
+        se.Color = this.Color;
+        point.DispatchEvent(Events.PlacedAsPoint, se);
+        
+        this.BeginIdle();
+        
+        //this.OperationQueue.EndBatch();
+      }
+      else if (this.Mode == DrawingMode.Segment ||
+               this.Mode == DrawingMode.Ray     ||
+               this.Mode == DrawingMode.Line)
+      {
+        //this.OperationQueue.BeginBatch();
+        
+        var position = this.CurrentGhost.Transform.WorldTranslation;
+        
+        this.EndPlacing0();
+        
+        var linearArchetype = this.SegmentArchetype;
+        
+        if (this.Mode == DrawingMode.Ray)
+          linearArchetype = this.RayArchetype;
+        else if (this.Mode == DrawingMode.Line)
+          linearArchetype = this.LineArchetype;
+        
+        this.Point0 = position;
+        
+        var linear = this.Space.CreateAtPosition(linearArchetype, position);
+        //this.OperationQueue.ObjectCreated(linear);
+        //this.OperationQueue.SaveObjectState(linear);
+        var se = ShapeEvent();
+        se.Start = this.Point0;
+        se.Color = this.Color;
+        linear.DispatchEvent(Events.Placing0Complete, se);
+        
+        this.CurrentLinear = linear;
+        
+        this.BeginPlacing1();
+        
+        //this.OperationQueue.EndBatch();
+      }
+      else // this.Mode == DrawingMode.Arc ||
+           // this.Mode == DrawingMode.Circle
+      {
+        
+      }
+    }
+    else if (this.State == DrawingState.Placing1)
+    {
+      if (this.Mode == DrawingMode.Segment ||
+          this.Mode == DrawingMode.Ray     ||
+          this.Mode == DrawingMode.Line)
+      {
+        //this.OperationQueue.BeginBatch();
+        
+        var position = this.CurrentGhost.Transform.WorldTranslation;
+        
+        this.EndPlacing1();
+        
+        this.Point1 = position;
+        
+        var linear = this.CurrentLinear;
+        //this.OperationQueue.ObjectCreated(linear);
+        //this.OperationQueue.SaveObjectState(linear);
+        var se = ShapeEvent();
+        se.Start = this.Point0;
+        se.End = this.Point1;
+        se.Color = this.Color;
+        linear.DispatchEvent(Events.Placing1Complete, se);
+        
+        this.CurrentLinear = null;
+        
+        this.BeginIdle();
+        
+        //this.OperationQueue.EndBatch();
+      }
+      else // this.Mode == DrawingMode.Arc ||
+           // this.Mode == DrawingMode.Circle
+      {
+        
+      }
+    }
+  }
+  
+  
+  function OnMouseScroll(event : ViewportMouseEvent)
+  {
+    var delta = -event.Scroll.Y as Integer;
+    
+    if (delta == 0) return;
+    
+    this.AttemptChangeColors(delta);
+  }
+  
+  
+  function OnKeyDown(event : KeyboardEvent)
+  {
+    if (event.Key == this.ModeKey)
+    {
+      if (event.ShiftPressed)
+        this.AttemptChangeMode(-1);
+      else
+        this.AttemptChangeMode(1);
+    }
+    //else if (event.Key == this.UndoKey && Zero.Keyboard.KeyIsDown(this.UndoModifier))
+    //  this.AttemptUndo();
+    //else if (event.Key == this.RedoKey && Zero.Keyboard.KeyIsDown(this.RedoModifier))
+    //  this.AttemptRedo();
+  }
+  
+  
+  function BeginIdle()
+  {
+    this.State = DrawingState.Idle;
+    
+    Zero.Mouse.Cursor = Cursor.Cross;
+  }
+  
+  
+  function EndIdle()
+  {
+    
+  }
+  
+  
+  function BeginPlacing0()
+  {
+    this.State = DrawingState.Placing0;
+    
+    var ghost = this.Space.CreateAtPosition(this.GhostPointArchetype, this.MousePosition);
+    this.CurrentGhost = ghost;
+    this.Ghosts.Add(ghost);
+    
+    ghost.Sprite.VertexColor = this.Color;
+    
+    Zero.Mouse.Cursor = Cursor.Invisible;
+  }
+  
+  
+  function EndPlacing0()
+  {
+    if (this.Mode == DrawingMode.Point)
+      this.RemoveAllGhosts();
+  }
+  
+  
+  function BeginPlacing1()
+  {
+    this.State = DrawingState.Placing1;
+    
+    
+  }
+  
+  
+  function EndPlacing1()
+  {
+    if (this.Mode == DrawingMode.Segment ||
+        this.Mode == DrawingMode.Ray     ||
+        this.Mode == DrawingMode.Line)
+      this.RemoveAllGhosts();
+  }
+  
+  
+  function BeginPlacing2()
+  {
+    this.State = DrawingState.Placing2;
+    
+    
+  }
+  
+  
+  function EndPlacing2()
+  {
+    
+  }
+  
+  
+  function BeginChoosingDirection()
+  {
+    this.State = DrawingState.ChoosingDirection;
+    
+    
+  }
+  
+  
+  function EndChoosingDirection()
+  {
+    this.RemoveAllGhosts();
+  }
+  
+  
+  function BeginRendering()
+  {
+    this.State = DrawingState.Rendering;
+    
+    
+  }
+  
+  
+  function EndRendering()
+  {
+    
+  }
+  
+  
+  function RemoveAllGhosts()
+  {
+    foreach (var ghost in this.Ghosts)
+      ghost.Destroy();
+    
+    this.Ghosts.Clear();
+  }
+  
+  
+  function AttemptUndo()
+  {
+    this.Undo();
+  }
+  
+  
+  function Undo()
+  {
+    //this.OperationQueue.Undo();
+  }
+  
+  
+  function AttemptRedo()
+  {
+    this.Redo();
+  }
+  
+  
+  function Redo()
+  {
+    //this.OperationQueue.Redo();
+  }
+  
+  
+  function AttemptChangeMode(delta : Integer)
+  {
+    if (this.CanChangeMode)
+      this.ChangeMode(delta);
+  }
+  
+  
+  function ChangeMode(delta : Integer)
+  {
+    this.Mode = HM[Integer].ZMod(this.Mode + delta, DrawingMode.COUNT_ as Integer) as DrawingMode;
+    
+    var he = HUDEvent();
+    he.Mode = this.Mode;
+    this.GameSession.DispatchEvent(Events.ModeChanged, he);
+  }
+  
+  
+  function AttemptChangeColors(delta : Integer)
+  {
+    if (this.CanChangeColors)
+      this.ChangeColor(delta);
+  }
+  
+  
+  function ChangeColor(delta : Real)
+  {
+    delta = -delta;
+    
+    var sKeyPressed = false;
+    var vKeyPressed = false;
+    var hdrKeyPressed = false;
+    
+    if (Zero.Keyboard.KeyIsDown(this.SKey))
+    {
+      sKeyPressed = true;
+      
+      this.ChangeS(delta);
+    }
+    if (Zero.Keyboard.KeyIsDown(this.VKey))
+    {
+      vKeyPressed = true;
+      
+      this.ChangeV(delta);
+    }
+    if (Zero.Keyboard.KeyIsDown(this.HDRKey))
+    {
+      hdrKeyPressed = true;
+      
+      this.ChangeHDR(delta);
+    }
+    
+    if (!sKeyPressed && !vKeyPressed && !hdrKeyPressed)
+    {
+      this.ChangeH(delta);
+    }
+    
+    this.Color = Color.FromHsva(this.ColorH, this.ColorS, this.ColorV, this.ColorA);
+    var alpha = this.Color.W;
+    this.Color = Real4((this.ColorHDR * this.Color).XYZ, alpha);
+    
+    var he = HUDEvent();
+    he.Color = this.Color;
+    he.ColorH = this.ColorH;
+    he.ColorS = this.ColorS;
+    he.ColorV = this.ColorV;
+    he.ColorA = this.ColorA;
+    he.ColorHDR = this.ColorHDR;
+    this.GameSession.DispatchEvent(Events.ColorChanged, he);
+    
+    if (this.CurrentGhost != null)
+      this.CurrentGhost.Sprite.VertexColor = this.Color;
+    if (this.CurrentLinear != null)
+    {
+      var se = ShapeEvent();
+      se.Color = this.Color;
+      this.CurrentLinear.DispatchEvent(Events.ObjectShouldChangeColor, se);
+    }
+  }
+  
+  
+  function ChangeH(delta : Real)
+  {
+    this.ColorH = HM[Real].ZMod(this.ColorH + delta * this.HScrollSpeed, 1.0);
+  }
+  
+  
+  function ChangeS(delta : Real)
+  {
+    this.ColorS = Math.Clamp(this.ColorS + delta * this.SScrollSpeed, 0.0, 1.0);
+  }
+  
+  
+  function ChangeV(delta : Real)
+  {
+    this.ColorV = Math.Clamp(this.ColorV + delta * this.VScrollSpeed, 0.0, 1.0);
+  }
+  
+  
+  function ChangeHDR(delta : Real)
+  {
+    this.ColorHDR = Math.Clamp(this.ColorHDR + delta * this.HDRScrollSpeed, 1.0, 100.0);
+  }
+  
+  
+  function OnCogDestroy(event : ObjectEvent)
+  {
+    Zero.Mouse.Cursor = Cursor.Arrow;
+  }
+}
+
+
+enum DrawingMode
+{
+  Point,
+  Segment,
+  Ray,
+  Line,
+  Arc,
+  Circle,
+  
+  COUNT_
+}
+
+
+enum DrawingState
+{
+  Idle,
+  Placing0,
+  Placing1,
+  Placing2,
+  ChoosingDirection,
+  Rendering,
+}
+
+
+class ShapeEvent : ZilchEvent
+{
+  var Start : Real3;
+  var End : Real3;
+  var Center : Real3;
+  var Clockwise : Boolean;
+  var Color : Real4;
+}

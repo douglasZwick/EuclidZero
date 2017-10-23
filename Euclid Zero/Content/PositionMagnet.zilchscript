@@ -1,0 +1,35 @@
+class PositionMagnet : ZilchComponent
+{
+  [Dependency] var Transform : Transform;
+  
+  
+  [Property] var BasePath : CogPath;
+  
+  var BaseCog : Cog { get { return this.BasePath.Cog; }}
+  var ObjectBase : ObjectBase { get { return this.BaseCog.ObjectBase; }}
+  
+  
+  function GetSnapPosition(inputPosition : Real3) : Real3
+  {
+    if (this.ObjectBase.Type == BaseType.Line)
+    {
+      var linearObject = this.BaseCog.LinearObject;
+      var p0 = linearObject.Line.Start;
+      var p1 = linearObject.Line.End;
+      var p0toP1 = p1 - p0;
+      var p0toInputPosition = inputPosition - p0;
+      var linearLength = Math.Length(p0toP1);
+      var linearDirection = p0toP1 / linearLength;
+      var dotOverLength = Math.Dot(p0toP1, p0toInputPosition) / linearLength;
+      
+      if (dotOverLength <= 0.0) return p0;
+      if (dotOverLength >= linearLength) return p1;
+      var snapPosition = p0 + dotOverLength * linearDirection;
+      return snapPosition;
+    }
+    else // this.ObjectBase.Type == ObjectType.Point
+    {
+      return this.Transform.WorldTranslation;
+    }
+  }
+}

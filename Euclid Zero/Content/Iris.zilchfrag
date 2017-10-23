@@ -1,0 +1,49 @@
+[Pixel][PostProcess]
+struct Iris
+{
+  [StageInput] var Uv : Real2;
+  [Input] var SceneTexture : Sampler2d;
+  [Input] var IrisTexture : Sampler2d;
+  [Input] var IrisColor : Real4 = Real4(0,0,0,1);
+  [Input] var Scale : Real = 1.0;
+  
+  [Output] var Target0 : Real4;
+  
+  
+  function Main()
+  {
+    var ndcUv = 2.0 * this.Uv - 1.0.XX;
+    
+    var sceneSize = this.SceneTexture.SampleSize(0) as Real2;
+    var sceneAspect = sceneSize.X / sceneSize.Y;
+    var irisSize = this.IrisTexture.SampleSize(0) as Real2;
+    var irisAspect = irisSize.X / irisSize.Y;
+    
+    var ndcIrisUvAtScaleZero = ndcUv;
+    var ndcIrisUvAtScaleNeg1 = 0.0.XX;
+    var ndcIrisUvIfScaleLT0 = Math.Lerp(ndcIrisUvAtScaleZero, ndcIrisUvAtScaleNeg1, -this.Scale);
+    var ndcIrisUvOtherwise = ndcUv / (1.0 - this.Scale);
+    var scaleInterpolant = Math.Step(0.0, this.Scale);
+    var ndcIrisUv = Math.Lerp(ndcIrisUvIfScaleLT0, ndcIrisUvOtherwise, scaleInterpolant);
+    
+    var ndcIrisUvIfAspectGT1 = Real2(ndcIrisUv.X, ndcIrisUv.Y * irisAspect);
+    ndcIrisUvOtherwise = Real2(ndcIrisUv.X / irisAspect, ndcIrisUv.Y);
+    ndcIrisUv = Math.Select(irisAspect > 1.0, ndcIrisUvIfAspectGT1, ndcIrisUvOtherwise);
+    
+    ndcIrisUvIfAspectGT1 = Real2(ndcIrisUv.X * sceneAspect, ndcIrisUv.Y);
+    ndcIrisUvOtherwise = Real2(ndcIrisUv.X, ndcIrisUv.Y / sceneAspect);
+    ndcIrisUv = Math.Select(sceneAspect > 1.0, ndcIrisUvIfAspectGT1, ndcIrisUvOtherwise);
+    
+    var irisUv = (ndcIrisUv + 1.0.XX) / 2.0;
+    
+    var sceneColor = this.SceneTexture.Sample(this.Uv);
+    var uvXValid = 0.0 <= irisUv.X && irisUv.X <= 1.0;
+    var uvYValid = 0.0 <= irisUv.Y && irisUv.Y <= 1.0;
+    var uvValid = uvXValid && uvYValid;
+    var irisAlphaIfUvValid = this.IrisTexture.Sample(irisUv).W;
+    var irisAlphaOtherwise = 0.0;
+    var irisAlpha = Math.Select(uvValid, irisAlphaIfUvValid, irisAlphaOtherwise);
+    
+    this.Target0 = Math.Lerp(this.IrisColor, sceneColor, irisAlpha);
+  }
+}

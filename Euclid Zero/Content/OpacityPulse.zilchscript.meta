@@ -1,0 +1,9 @@
+[Version:1]
+TextContent 
+{
+	ZilchScriptBuilder 
+	{
+		var Name = "OpacityPulse"
+		var ResourceId = 0x590ab79a6e8707c6
+	}
+}
