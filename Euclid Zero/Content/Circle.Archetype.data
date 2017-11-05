@@ -1,5 +1,5 @@
 [Version:1]
-Cog [InheritId:"590570b5bafbb0b6:CircularObject"]
+Cog [InheritId:"5916ce4e2be405ca:CircularObject"]
 {
 	var Name = "Circle"
 	Transform 
@@ -7,13 +7,5 @@ Cog [InheritId:"590570b5bafbb0b6:CircularObject"]
 		var Translation = Real3{0, 0, 0}
 		var Rotation = Quaternion{0, 0, 0, 1}
 		var Scale = Real3{1, 1, 1}
-	}
-	ObjectBase 
-	{
-		var Type = BaseType.Circle
-	}
-	RigidBody 
-	{
-		var Velocity = Real3{0, 0, 0}
 	}
 }

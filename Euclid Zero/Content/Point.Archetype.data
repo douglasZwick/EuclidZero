@@ -4,12 +4,9 @@ Cog [InheritId:"5903bc7d4c3b4ca2:BaseObject"]
 	var Name = "Point"
 	Transform 
 	{
-		var Translation = Real3{-0, -0, -0}
+		var Translation = Real3{0, 0, 0}
 		var Rotation = Quaternion{0, 0, 0, 1}
 		var Scale = Real3{1, 1, 1}
-	}
-	Point [LocallyAdded]
-	{
 	}
 	Hierarchy [ChildOrderOverride]
 	{

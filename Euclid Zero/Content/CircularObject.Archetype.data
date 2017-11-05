@@ -10,25 +10,21 @@ Cog [InheritId:"5903bc7d4c3b4ca2:BaseObject"]
 	}
 	ObjectBase 
 	{
-		var Type = BaseType.Arc
-	}
-	RigidBody 
-	{
-		var Velocity = Real3{0, 0, 0}
+		var Type = BaseType.Circle
 	}
 	CircularObject [LocallyAdded]
 	{
-		var Type = CircularObjectType.Arc
+		var Type = CircularObjectType.Circle
 		var Color = Real4{0, 0, 1, 1}
 		var DrawDuration = 1
-	}
-	IntersectionPointMaker [LocallyAdded]
-	{
-		var PointArchetype = "590ddf232118ab1d:Point"
+		var GhostArcPulsePeriod = 1
+		var RenderGhostArchetype = "59200fd536e6df50:RenderGhost"
+		var RenderGhostFadeDuration = 0.100000001
+		var Clockwise = false
 	}
 	Hierarchy [ChildOrderOverride]
 	{
-		Cog [Id:0x590571f7a3041265][InheritId:"590ddf232118ab1d:Point"][LocallyAdded]
+		Cog [Id:0x5916ce532c0a51c4][InheritId:"590ddf232118ab1d:Point"][LocallyAdded]
 		{
 			var Name = "O"
 			Transform 
@@ -37,289 +33,28 @@ Cog [InheritId:"5903bc7d4c3b4ca2:BaseObject"]
 				var Rotation = Quaternion{0, 0, 0, 1}
 				var Scale = Real3{1, 1, 1}
 			}
-			ObjectBase 
-			{
-				var Type = BaseType.Point
-			}
-			RigidBody 
-			{
-				var Velocity = Real3{0, 0, 0}
-				var AngularVelocity = Real3{0, 0, 0}
-				var DynamicState = RigidBodyDynamicState.Kinematic
-				var AllowSleep = false
-				var Asleep = false
-				var RotationLocked = false
-				var Mode2D = Mode2DStates.InheritFromSpace
-			}
-			Hierarchy [ChildOrderOverride]
-			{
-				Cog [Id:0x5903bac2ba6ac465]
-				{
-					var Name = "SpriteCog"
-					Transform 
-					{
-						var Translation = Real3{0, 0, 0}
-						var Rotation = Quaternion{0, 0, 0, 1}
-						var Scale = Real3{1, 1, 1}
-					}
-					Sprite 
-					{
-						var Visible = true
-						var ViewCulling = true
-						var VisibilityEvents = true
-						var OverrideBoundingBox = false
-						var LocalAabbCenter = Real3{0, 0, 0}
-						var LocalAabbHalfExtents = Real3{1, 1, 1}
-						var GroupSortValue = 0
-						var Material = "582c575af53d18c9:AlphaSprite"
-						var VertexColor = Real4{1, 1, 1, 1}
-						var GeometryMode = SpriteGeometryMode.ZPlane
-						var SpriteSource = "5274db4c2e7c11f9:Circle"
-						var FlipX = false
-						var FlipY = false
-						var AnimationActive = true
-						var AnimationSpeed = 1
-						var StartFrame = 0
-					}
-					Area 
-					{
-						var Origin = Location.Center
-						var Size = Real2{0.25, 0.25}
-					}
-				}
-				Cog [Id:0x5903ba5d8c12ca9c]
-				{
-					var Name = "ColliderCog"
-					Transform 
-					{
-						var Translation = Real3{0, 0, 0}
-						var Rotation = Quaternion{0, 0, 0, 1}
-						var Scale = Real3{1, 1, 1}
-					}
-					SphereCollider 
-					{
-						var Material = "4de020863e872da8:DefaultPhysicsMaterial"
-						var CollisionGroup = "4e740859314e5515:DefaultGroup"
-						var Ghost = false
-						var SendsEvents = true
-						var Offset = Real3{0, 0, 0}
-						var Radius = 0.5
-					}
-					PositionMagnet 
-					{
-						var BasePath = CogPath
-						{
-							var Path = ".."
-							var Cog = 4294967293
-							var ErrorOnResolveToNull = false
-							var ErrorOnPathCantCompute = false
-							var ErrorOnDirectLinkFail = false
-							var UpdateCogOnPathChange = true
-							var UpdateCogOnInitialize = true
-							var UpdatePathOnCogChange = true
-							var PathPreference0 = CogPathPreference.CogRelative
-							var PathPreference1 = CogPathPreference.SpaceRelative
-							var PathPreference2 = CogPathPreference.Absolute
-						}
-					}
-				}
-			}
 		}
-		Cog [Id:0x59057e49d083e047][InheritId:"590ddf232118ab1d:Point"][LocallyAdded]
+		Cog [Id:0x5916ce082411b31c][LocallyAdded]
 		{
 			var Name = "P0"
 			Transform 
 			{
-				var Translation = Real3{3, 0, 0}
-				var Rotation = Quaternion{0, 0, 0, 1}
+				var Translation = Real3{0, 0, 0}
 				var Scale = Real3{1, 1, 1}
-			}
-			ObjectBase 
-			{
-				var Type = BaseType.Point
-			}
-			RigidBody 
-			{
-				var Velocity = Real3{0, 0, 0}
-				var AngularVelocity = Real3{0, 0, 0}
-				var DynamicState = RigidBodyDynamicState.Kinematic
-				var AllowSleep = false
-				var Asleep = false
-				var RotationLocked = false
-				var Mode2D = Mode2DStates.InheritFromSpace
-			}
-			Hierarchy [ChildOrderOverride]
-			{
-				Cog [Id:0x5903bac2ba6ac465]
-				{
-					var Name = "SpriteCog"
-					Transform 
-					{
-						var Translation = Real3{0, 0, 0}
-						var Rotation = Quaternion{0, 0, 0, 1}
-						var Scale = Real3{1, 1, 1}
-					}
-					Sprite 
-					{
-						var Visible = true
-						var ViewCulling = true
-						var VisibilityEvents = true
-						var OverrideBoundingBox = false
-						var LocalAabbCenter = Real3{0, 0, 0}
-						var LocalAabbHalfExtents = Real3{1, 1, 1}
-						var GroupSortValue = 0
-						var Material = "582c575af53d18c9:AlphaSprite"
-						var VertexColor = Real4{1, 1, 1, 1}
-						var GeometryMode = SpriteGeometryMode.ZPlane
-						var SpriteSource = "5274db4c2e7c11f9:Circle"
-						var FlipX = false
-						var FlipY = false
-						var AnimationActive = true
-						var AnimationSpeed = 1
-						var StartFrame = 0
-					}
-					Area 
-					{
-						var Origin = Location.Center
-						var Size = Real2{0.25, 0.25}
-					}
-				}
-				Cog [Id:0x5903ba5d8c12ca9c]
-				{
-					var Name = "ColliderCog"
-					Transform 
-					{
-						var Translation = Real3{0, 0, 0}
-						var Rotation = Quaternion{0, 0, 0, 1}
-						var Scale = Real3{1, 1, 1}
-					}
-					SphereCollider 
-					{
-						var Material = "4de020863e872da8:DefaultPhysicsMaterial"
-						var CollisionGroup = "4e740859314e5515:DefaultGroup"
-						var Ghost = false
-						var SendsEvents = true
-						var Offset = Real3{0, 0, 0}
-						var Radius = 0.5
-					}
-					PositionMagnet 
-					{
-						var BasePath = CogPath
-						{
-							var Path = ".."
-							var Cog = 4294967293
-							var ErrorOnResolveToNull = false
-							var ErrorOnPathCantCompute = false
-							var ErrorOnDirectLinkFail = false
-							var UpdateCogOnPathChange = true
-							var UpdateCogOnInitialize = true
-							var UpdatePathOnCogChange = true
-							var PathPreference0 = CogPathPreference.CogRelative
-							var PathPreference1 = CogPathPreference.SpaceRelative
-							var PathPreference2 = CogPathPreference.Absolute
-						}
-					}
-				}
+				var Rotation = Quaternion{0, 0, 0, 1}
 			}
 		}
-		Cog [Id:0x59057e7fd561e3bd][InheritId:"590ddf232118ab1d:Point"][LocallyAdded]
+		Cog [Id:0x5916ce11251ec385][LocallyAdded]
 		{
 			var Name = "P1"
 			Transform 
 			{
-				var Translation = Real3{0, 3, 0}
-				var Rotation = Quaternion{0, 0, 0, 1}
+				var Translation = Real3{0, 0, 0}
 				var Scale = Real3{1, 1, 1}
-			}
-			ObjectBase 
-			{
-				var Type = BaseType.Point
-			}
-			RigidBody 
-			{
-				var Velocity = Real3{0, 0, 0}
-				var AngularVelocity = Real3{0, 0, 0}
-				var DynamicState = RigidBodyDynamicState.Kinematic
-				var AllowSleep = false
-				var Asleep = false
-				var RotationLocked = false
-				var Mode2D = Mode2DStates.InheritFromSpace
-			}
-			Hierarchy [ChildOrderOverride]
-			{
-				Cog [Id:0x5903bac2ba6ac465]
-				{
-					var Name = "SpriteCog"
-					Transform 
-					{
-						var Translation = Real3{0, 0, 0}
-						var Rotation = Quaternion{0, 0, 0, 1}
-						var Scale = Real3{1, 1, 1}
-					}
-					Sprite 
-					{
-						var Visible = true
-						var ViewCulling = true
-						var VisibilityEvents = true
-						var OverrideBoundingBox = false
-						var LocalAabbCenter = Real3{0, 0, 0}
-						var LocalAabbHalfExtents = Real3{1, 1, 1}
-						var GroupSortValue = 0
-						var Material = "582c575af53d18c9:AlphaSprite"
-						var VertexColor = Real4{1, 1, 1, 1}
-						var GeometryMode = SpriteGeometryMode.ZPlane
-						var SpriteSource = "5274db4c2e7c11f9:Circle"
-						var FlipX = false
-						var FlipY = false
-						var AnimationActive = true
-						var AnimationSpeed = 1
-						var StartFrame = 0
-					}
-					Area 
-					{
-						var Origin = Location.Center
-						var Size = Real2{0.25, 0.25}
-					}
-				}
-				Cog [Id:0x5903ba5d8c12ca9c]
-				{
-					var Name = "ColliderCog"
-					Transform 
-					{
-						var Translation = Real3{0, 0, 0}
-						var Rotation = Quaternion{0, 0, 0, 1}
-						var Scale = Real3{1, 1, 1}
-					}
-					SphereCollider 
-					{
-						var Material = "4de020863e872da8:DefaultPhysicsMaterial"
-						var CollisionGroup = "4e740859314e5515:DefaultGroup"
-						var Ghost = false
-						var SendsEvents = true
-						var Offset = Real3{0, 0, 0}
-						var Radius = 0.5
-					}
-					PositionMagnet 
-					{
-						var BasePath = CogPath
-						{
-							var Path = ".."
-							var Cog = 4294967293
-							var ErrorOnResolveToNull = false
-							var ErrorOnPathCantCompute = false
-							var ErrorOnDirectLinkFail = false
-							var UpdateCogOnPathChange = true
-							var UpdateCogOnInitialize = true
-							var UpdatePathOnCogChange = true
-							var PathPreference0 = CogPathPreference.CogRelative
-							var PathPreference1 = CogPathPreference.SpaceRelative
-							var PathPreference2 = CogPathPreference.Absolute
-						}
-					}
-				}
+				var Rotation = Quaternion{0, 0, 0, 1}
 			}
 		}
-		Cog [Id:0x59057e3bce5dab69][LocallyAdded]
+		Cog [Id:0x5916ce182661fae3][LocallyAdded]
 		{
 			var Name = "ColliderCog"
 			Transform 
@@ -327,6 +62,16 @@ Cog [InheritId:"5903bc7d4c3b4ca2:BaseObject"]
 				var Translation = Real3{0, 0, 0}
 				var Scale = Real3{1, 1, 1}
 				var Rotation = Quaternion{0, 0, 0, 1}
+			}
+			RigidBody 
+			{
+				var Velocity = Real3{0, 0, 0}
+				var AngularVelocity = Real3{0, 0, 0}
+				var DynamicState = RigidBodyDynamicState.Kinematic
+				var AllowSleep = true
+				var Asleep = false
+				var RotationLocked = false
+				var Mode2D = Mode2DStates.InheritFromSpace
 			}
 			CylinderCollider 
 			{
@@ -338,24 +83,6 @@ Cog [InheritId:"5903bc7d4c3b4ca2:BaseObject"]
 				var Radius = 0.5
 				var Height = 1
 				var Direction = AxisDirection.Z
-			}
-			PositionMagnet 
-			{
-				var BasePath = CogPath
-				{
-					var Path = ".."
-					var ErrorOnResolveToNull = false
-					var ErrorOnPathCantCompute = false
-					var ErrorOnDirectLinkFail = false
-					var UpdateCogOnPathChange = true
-					var UpdatePathOnCogChange = true
-					var UpdateCogOnInitialize = true
-					var ResolvedNullErrorOccurred = false
-					var Cog = 4294967293
-					var PathPreference0 = CogPathPreference.CogRelative
-					var PathPreference1 = CogPathPreference.SpaceRelative
-					var PathPreference2 = CogPathPreference.Absolute
-				}
 			}
 		}
 	}

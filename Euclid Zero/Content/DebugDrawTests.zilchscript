@@ -2,65 +2,179 @@ class DebugDrawTests : ZilchComponent
 {
   var MousePosition : Real3;
   
-  var T : Real = 0.0;
+  var T_ : Real = 0.0;
+  var T : Real
+  {
+    get { return this.T_; }
+    
+    set
+    {
+      this.T_ = value;
+      
+      this.DrawCircle(this.T_);
+    }
+  }
+  
+  var Arc : DebugArc;
+  var CenterRing : DebugCircle;
+  var Ring0 : DebugCircle;
+  var Ring1 : DebugCircle;
+  var AnchorRing : DebugCircle;
+  var MidpointRing : DebugCircle;
+  
+  var Actions : ActionSet;
   
   
   function Initialize(init : CogInitializer)
   {
-    //Zero.Connect(this.Space, Events.LogicUpdate, this.OnLogicUpdate);
+    this.Actions = Action.Group(this.Owner.Actions);
+    //this.BeginRendering();
+    //Zero.Connect(this.Space, Events.FrameUpdate, this.OnFrameUpdate);
   }
   
   
-  function OnLogicUpdate(event : UpdateEvent)
+  function BeginRendering()
   {
-    var clockwise = false;
+    this.Arc = DebugArc();
+    var color = Real4(10, 8, 0.1, 1);
+    this.Arc.Color = color;
     
-    var o = Real3(3, -2, 0);
-    var p0 = Real3(2, 3, 0);
+    var circle = DebugCircle();
+    circle.Radius = 0.2;
+    color = Real4(10, 0.05, 0.2, 1);
+    this.CenterRing = circle;
+    this.Ring0 = circle;
+    this.AnchorRing = circle;
+    this.CenterRing.Color = color;
+    this.Ring0.Color = color;
+    this.AnchorRing.Color = color;
+    color = Real4(0.05, 0.1, 10, 1);
+    this.Ring1 = circle;
+    this.Ring1.Color = color;
+    this.MidpointRing = circle;
+    this.MidpointRing.Color = color;
+    
+    var duration = 0.5;
+    
+    this.Actions.Cancel();
+    this.Actions = Action.Group(this.Owner.Actions);
+      
+      var drawSeq = Action.Sequence(this.Actions);
+        
+        Action.Property(drawSeq, @this.T, 1.0, duration, Ease.QuadInOut);
+        Action.Call(drawSeq, this.EndRendering);
+    
+    Zero.Connect(this.Space, Events.FrameUpdate, this.OnFrameUpdate);
+  }
+  
+  
+  function OnFrameUpdate(event : UpdateEvent)
+  {
+    //DebugDraw.Add(this.Arc);
+    //DebugDraw.Add(this.CenterRing);
+    //DebugDraw.Add(this.Ring0);
+    //DebugDraw.Add(this.AnchorRing);
+    //DebugDraw.Add(this.Ring1);
+    //DebugDraw.Add(this.MidpointRing);
+    
+    var arc = DebugArc();
+    arc.Start = Real3(5, 1, 0);
+    arc.End = arc.Start + Real3(0.00001, 0, 0);
+    arc.Mid = -arc.Start;
+    //arc.Color = Real4(10, 8, 0.2, 1);
+    arc.Color = Colors.White;
+    DebugDraw.Add(arc);
+  }
+  
+  
+  function EndRendering()
+  {
+    
+  }
+  
+  
+  function DrawCircle(t : Real)
+  {
+    var o = Real3(0, 0, 0);
+    var p0 = Real3(4, -5, 0);
+    var p1 = p0;
+    var edge0 = p0 - o;
+    var edge1 = edge0;
+    var radius = Math.Length(edge0);
+    
+    var angle = HM[Real].Tau;
+    
+    var minAngle = 0.0;
+    var maxAngle = angle;
+    
+    var currentAngle = Math.Lerp(minAngle, maxAngle, t);
+    var currentEdge = Math.RotateVector(edge0, Real3.ZAxis, currentAngle);
+    var currentP1 = o + currentEdge;
+    
+    var halfAngle = currentAngle / 2.0;
+    
+    var midpoint = o + Math.RotateVector(edge0, Real3.ZAxis, halfAngle);
+    
+    this.Arc.Start = p0;
+    this.Arc.Mid = midpoint;
+    this.Arc.End = currentP1;
+    
+    this.CenterRing.Position = o;
+    this.Ring0.Position = p0;
+    this.AnchorRing.Position = p1;
+    this.Ring1.Position = p1;
+    this.MidpointRing.Position = midpoint;
+  }
+  
+  
+  function DrawArc(t : Real)
+  {
+    var clockwise = true;
+    
+    var o = Real3(0, 0, 0);
+    var p0 = Real3(-2, 6, 0);
     var edge0 = p0 - o;
     var radius = Math.Length(edge0);
-    var p1 = Real3(10, 0, 0);
-    var edge1 = p1 - o;
-    var p1Corrected = radius * Math.Normalize(edge1) + o;
-    edge1 = p1Corrected - o;
+    var anchor = Real3(5, 0, 0);
+    var edge1 = anchor - o;
+    var p1 = radius * Math.Normalize(edge1) + o;
+    edge1 = p1 - o;
+    
+    var angle = Math.AngleBetween(edge0, edge1);
+    var cross = Math.Cross(edge0.XY, edge1.XY);
     
     if (clockwise)
     {
-      var temp = edge0;
-      edge0 = edge1;
-      edge1 = temp;
+      cross = -cross;
     }
     
-    var angle = Math.AngleBetween(edge0, edge1);
-    var halfAngle = angle / 2.0;
-    var edge0Angle = Math.Angle2D(edge0);
-    var midpointAngle = halfAngle + edge0Angle;
-    var midpoint = radius * Real3(Math.Cos(midpointAngle), Math.Sin(midpointAngle), 0) + o;
+    if (cross < 0)
+      angle = HM[Real].Tau - angle;
     
-    var arc = DebugArc();
-    arc.Start = p0;
-    arc.Mid = midpoint;
-    arc.End = p1Corrected;
-    arc.Color = Colors.White;
-    DebugDraw.Add(arc);
+    var minAngle = 0.0;
+    var maxAngle = angle;
     
-    var ringColor = Colors.Red;
-    this.MakeRing(o, ringColor);
-    this.MakeRing(p0, ringColor);
-    this.MakeRing(p1, Colors.Blue);
-    this.MakeRing(midpoint, ringColor);
-    this.MakeRing(p1Corrected, ringColor);
-  }
-  
-  
-  function MakeRing(p : Real3, color : Real4)
-  {
-    debug return;
-    var radius = 0.2;
-    var circle = DebugCircle();
-    circle.Position = p;
-    circle.Radius = radius;
-    circle.Color = color;
-    DebugDraw.Add(circle);
+    if (clockwise)
+    {
+      maxAngle = -angle;
+    }
+    
+    var currentAngle = Math.Lerp(minAngle, maxAngle, t);
+    var currentEdge = Math.RotateVector(edge0, Real3.ZAxis, currentAngle);
+    var currentP1 = o + currentEdge;
+    
+    var halfAngle = currentAngle / 2.0;
+    
+    var midpoint = o + Math.RotateVector(edge0, Real3.ZAxis, halfAngle);
+    
+    this.Arc.Start = p0;
+    this.Arc.Mid = midpoint;
+    this.Arc.End = currentP1;
+    
+    this.CenterRing.Position = o;
+    this.Ring0.Position = p0;
+    this.AnchorRing.Position = anchor;
+    this.Ring1.Position = p1;
+    this.MidpointRing.Position = midpoint;
   }
 }

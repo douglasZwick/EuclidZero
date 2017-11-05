@@ -4,7 +4,7 @@ DataContent
 	DataBuilder 
 	{
 		var Name = "Circle"
-		var ResourceId = 0x59057f65f5aa48e0
+		var ResourceId = 0x5916cef85312b6ac
 		var LoaderType = "Cog"
 		var Version = 0
 		var ShowInEditor = true

@@ -1,5 +1,10 @@
 class CircularObject : ZilchComponent
 {
+  sends PlacedAsO : ShapeEvent;
+  sends PlacedAsP0 : ShapeEvent;
+  sends PlacedAsP1 : ShapeEvent;
+  
+  
   [Dependency] var ObjectBase : ObjectBase;
   
   
@@ -9,23 +14,21 @@ class CircularObject : ZilchComponent
   [Property] var GhostArcPulsePeriod : Real = 1.0;
   [Property] var RenderGhostArchetype : Archetype = Archetype.RenderGhost;
   [Property] var RenderGhostFadeDuration : Real = 0.1;
+  [Property] var Clockwise : Boolean = false;
   
-  var T_ : Real = 0.0;
-  var T : Real
-  {
-    get { return this.T_; }
-    
-    set
-    {
-      var dt = value - this.T_;
-      
-      this.T_ = value;
-      
-      
-    }
-  }
+  var Arc : DebugArc;
+  var Circle : DebugCircle;
+  var GhostArc : DebugArc;
+  var GhostCircle : DebugCircle;
+  var GhostPulseTimer : Real = 0;
+  var GhostOpacityMinScalar : Real = 0.08;
+  var GhostOpacityMaxScalar : Real = 0.4;
+  var GhostColorMin : Real4;
+  var GhostColorMax : Real4;
+  var GhostState : ArcGhostState = ArcGhostState.None;
+  var Rendering : Boolean = false;
   
-  var Arc : DebugArc = DebugArc();
+  var Actions : ActionSet;
   
   var O_ : Cog;
   var P0_ : Cog;
@@ -68,58 +71,293 @@ class CircularObject : ZilchComponent
     }
   }
   
+  var OPos : Real3 { get { return this.O.Transform.WorldTranslation; }}
+  var P0Pos : Real3 { get { return this.P0.Transform.WorldTranslation; }}
+  var P1Pos : Real3 { get { return this.P1.Transform.WorldTranslation; }}
+  var Radius : Real { get { return Math.Length(this.P0Pos - this.OPos); }}
+  
+  var T_ : Real = 0.0;
+  var T : Real
+  {
+    get { return this.T_; }
+    
+    set
+    {
+      var dt = value - this.T_;
+      
+      this.T_ = value;
+      
+      var o = this.OPos;
+      var p0 = this.P0Pos;
+      var anchor = this.P1Pos;
+      var clockwise = this.Clockwise;
+      var edge0 = p0 - o;
+      var anchorEdge = anchor - o;
+      var radius = Math.Length(edge0);
+      
+      var minAngle = 0.0;
+      var maxAngle = HM[Real].Tau;
+      
+      if (this.Type == CircularObjectType.Arc)
+      {
+        var p1 = radius * Math.Normalize(anchorEdge) + o;
+        var edge1 = p1 - o;
+        var angle = Math.AngleBetween(edge0, edge1);
+        var cross = Math.Cross(edge0.XY, edge1.XY);
+        
+        if (clockwise)
+          cross = -cross;
+        
+        if (cross < 0)
+          angle = HM[Real].Tau - angle;
+        
+        maxAngle = angle;
+        
+        if (clockwise)
+          maxAngle = -angle;
+      }
+      
+      var currentAngle = Math.Lerp(minAngle, maxAngle, value);
+      var currentEdge = Math.RotateVector(edge0, Real3.ZAxis, currentAngle);
+      var currentP1 = o + currentEdge;
+      
+      var halfAngle = currentAngle / 2;
+      var midpoint = o + Math.RotateVector(edge0, Real3.ZAxis, halfAngle);
+      
+      this.Arc.Start = p0;
+      this.Arc.Mid = midpoint;
+      this.Arc.End = currentP1;
+    }
+  }
+  
   
   function Initialize(init : CogInitializer)
   {
-    this.BeginDrawing();
+    this.Actions = Action.Group(this.Owner.Actions);
     
-    Zero.Connect(this.Space, Events.LogicUpdate, this.OnLogicUpdate);
+    Zero.Connect(this.Owner, Events.Placing0Complete, this.OnPlacing0Complete);
+    Zero.Connect(this.Owner, Events.Placing1Complete, this.OnPlacing1Complete);
+    Zero.Connect(this.Owner, Events.Placing2Complete, this.OnPlacing2Complete);
+    Zero.Connect(this.Owner, Events.ChoosingDirectionComplete, this.OnChoosingDirectionComplete);
+    Zero.Connect(this.Owner, Events.ObjectShouldChangeColor, this.OnObjectShouldChangeColor);
   }
   
   
-  function OnLogicUpdate(event : UpdateEvent)
+  function OnPlacing0Complete(event : ShapeEvent)
   {
-    var start = Real3();
-    var mid = Real3();
-    var end = Real3();
+    this.O.DispatchEvent(Events.PlacedAsO, event);
+    this.P0.DispatchEvent(Events.PlacingStarted, event);
+    this.P1.DispatchEvent(Events.PlacingStarted, event);
+    
+    this.Color = event.Color;
+    this.GhostColorMin = this.Color;
+    this.GhostColorMin.W *= this.GhostOpacityMinScalar;
+    this.GhostColorMax = this.Color;
+    this.GhostColorMax.W *= this.GhostOpacityMaxScalar;
+    
+    this.BeginCircleGhosting();
+  }
+  
+  
+  function OnPlacing1Complete(event : ShapeEvent)
+  {
+    this.P0.DispatchEvent(Events.PlacedAsP0, event);
     
     if (this.Type == CircularObjectType.Arc)
     {
-      if (this.T < 0.0)
-      {
-        
-      }
-      else
-      {
-        
-      }
+      this.GoFromCircleToArcGhosting();
     }
-    else // this.Type == CircularObjectType.Circle
+    else
     {
-      if (this.T < 0.0)
-      {
-        
-      }
-      else
-      {
-        
-      }
+      this.EndGhosting();
+      this.BeginRendering();
     }
     
-    this.Arc.Start = start;
-    this.Arc.Mid = mid;
-    this.Arc.End = end;
-    this.Arc.Color = this.Color;
-    
-    DebugDraw.Add(this.Arc);
+    // do i need to set color here...?
   }
   
   
-  function BeginDrawing()
+  function OnPlacing2Complete(event : ShapeEvent)
   {
-    this.Owner.Actions.Cancel();
+    // no need to update ghost state here because we're still an arc
+    this.P1.DispatchEvent(Events.PlacedAsP1, event);
+    // do i need to set color here.....???
+  }
+  
+  
+  function OnChoosingDirectionComplete(event : ShapeEvent)
+  {
+    this.EndGhosting();
     
-    Action.Property(this.Owner.Actions, @this.T, 1.0, this.DrawDuration, Ease.QuadInOut);
+    // do i need to set color here.......?????
+    
+    this.OrientGhostArcAndCollider();
+    this.BeginRendering();
+  }
+  
+  
+  function OnObjectShouldChangeColor(event : ShapeEvent)
+  {
+    this.Color = event.Color;
+    this.GhostColorMin = this.Color;
+    this.GhostColorMin.W *= this.GhostOpacityMinScalar;
+    this.GhostColorMax = this.Color;
+    this.GhostColorMax.W *= this.GhostOpacityMaxScalar;
+    this.O.DispatchEvent(Events.ObjectShouldChangeColor, event);
+    this.P0.DispatchEvent(Events.ObjectShouldChangeColor, event);
+    this.P1.DispatchEvent(Events.ObjectShouldChangeColor, event);
+  }
+  
+  
+  function OnFrameUpdate(event : UpdateEvent)
+  {
+    if (this.GhostState == ArcGhostState.None)
+      this.UpdateRender();
+    else
+      this.UpdateGhosting(event.Dt);
+  }
+  
+  
+  function CalculateWinding(mousePosition : Real3)
+  {
+    var o = this.OPos;
+    var p0 = this.P0Pos;
+    var p1 = this.P1Pos;
+    var chord = p1 - p0;
+    var axis = o + chord;
+    var testVector = mousePosition - o;
+    var cross = Math.Cross(axis.XY, testVector.XY);
+    
+    this.Clockwise = cross >= 0;
+  }
+  
+  
+  function BeginCircleGhosting()
+  {
+    this.GhostState = ArcGhostState.Circle;
+    this.ColliderCog.Collider.Ghost = true;
+    
+    this.GhostCircle = DebugCircle();
+    
+    Zero.Connect(this.Space, Events.FrameUpdate, this.OnFrameUpdate);
+  }
+  
+  
+  function GoFromCircleToArcGhosting()
+  {
+    this.GhostState = ArcGhostState.Arc;
+    
+    this.GhostArc = DebugArc();
+  }
+  
+  
+  function UpdateGhosting(dt : Real)
+  {
+    var interpolant = HM[Real].CosineMagic(this.GhostPulseTimer, this.GhostArcPulsePeriod, 0, 1);
+    
+    if (this.GhostState == ArcGhostState.Circle)
+    {
+      this.GhostCircle.Color = Math.Lerp(this.GhostColorMin, this.GhostColorMax, interpolant);
+      this.OrientGhostArcAndCollider();
+      DebugDraw.Add(this.GhostCircle);
+    }
+    else
+    {
+      this.GhostArc.Color = Math.Lerp(this.GhostColorMin, this.GhostColorMax, interpolant);
+      this.OrientGhostArcAndCollider();
+      DebugDraw.Add(this.GhostArc);
+    }
+    
+    this.GhostPulseTimer += dt;
+  }
+  
+  
+  function EndGhosting()
+  {
+    this.GhostState = ArcGhostState.None;
+    this.ColliderCog.Collider.Ghost = false;
+  }
+  
+  
+  function BeginRendering()
+  {
+    this.Rendering = true;
+    
+    this.Arc = DebugArc();
+    this.Arc.Color = this.Color;
+    
+    this.Actions.Cancel();
+    this.Actions = Action.Group(this.Owner.Actions);
+      
+      var drawSeq = Action.Sequence(this.Actions);
+        
+        var ease = SampleCurve.SegmentDrawCurve;
+        Action.Property(drawSeq, @this.T, 1.0, this.DrawDuration, ease);
+        Action.Call(drawSeq, this.EndRendering);
+        
+    Zero.Connect(this.Space, Events.FrameUpdate, this.OnFrameUpdate);
+  }
+  
+  
+  function UpdateRender()
+  {
+    if (this.Rendering || this.Type == CircularObjectType.Arc)
+      DebugDraw.Add(this.Arc);
+    else
+      DebugDraw.Add(this.Circle);
+  }
+  
+  
+  function EndRendering()
+  {
+    this.Rendering = false;
+    
+    this.Circle = DebugCircle();
+    this.Circle.Color = this.Color;
+    this.Circle.Position = this.OPos;
+    this.Circle.Radius = this.Radius;
+    
+    this.Owner.DispatchEvent(Events.RenderingComplete, ShapeEvent());
+  }
+  
+  
+  function OrientGhostArcAndCollider()
+  {
+    var o = this.OPos;
+    var radius = this.Radius;
+    
+    if (this.GhostState == ArcGhostState.Arc)
+    {
+      var p0 = this.P0Pos;
+      var edge0 = p0 - o;
+      var anchor = this.P1Pos;
+      var anchorEdge = anchor - o;
+      var clockwise = this.Clockwise;
+      var p1 = radius * Math.Normalize(anchorEdge) + o;
+      var edge1 = p1 - o;
+      var angle = Math.AngleBetween(edge0, edge1);
+      var cross = Math.Cross(edge0.XY, edge1.XY);
+      
+      if (clockwise)
+        cross = -cross;
+      
+      if (cross < 0)
+        angle = HM[Real].Tau - angle;
+      
+      var halfAngle = angle / 2;
+      var midpoint = o + Math.RotateVector(edge0, Real3.ZAxis, halfAngle);
+      
+      this.GhostArc.Start = p0;
+      this.GhostArc.Mid = midpoint;
+      this.GhostArc.End = p1;
+    }
+    else
+    {
+      this.GhostCircle.Position = o;
+      this.GhostCircle.Radius = radius;
+    }
+    
+    this.ColliderCog.Transform.WorldTranslation = o;
   }
 }
 
@@ -128,4 +366,12 @@ enum CircularObjectType
 {
   Arc,
   Circle,
+}
+
+
+enum ArcGhostState
+{
+  None,
+  Circle,
+  Arc,
 }

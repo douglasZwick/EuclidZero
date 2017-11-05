@@ -92,6 +92,7 @@ class ObjectDrawer : ZilchComponent
   var DisableNonPointSnappingKey : Keys = Keys.Shift;
   
   var CurrentLinear : Cog;
+  var CurrentCircular : Cog;
   
   //var OperationQueue : OperationQueue;
   
@@ -156,6 +157,10 @@ class ObjectDrawer : ZilchComponent
   function OnMouseUpdate(event : ViewportMouseEvent)
   {
     var mousePosition = event.ToWorldZPlane(0.0);
+    
+    if (Zero.Keyboard.KeyIsDown(Keys.B))
+      mousePosition = Real3.Zero;
+    
     this.MousePosition = mousePosition;
     
     if (this.State == DrawingState.Placing0)
@@ -168,8 +173,31 @@ class ObjectDrawer : ZilchComponent
     {
       var finalMousePosition = this.CalculateFinalMousePosition(mousePosition, event.WorldRay);
       
+      if (this.Mode == DrawingMode.Segment ||
+          this.Mode == DrawingMode.Ray ||
+          this.Mode == DrawingMode.Line)
+      {
+        this.CurrentLinear.LinearObject.P1.Transform.WorldTranslation = finalMousePosition;
+      }
+      else if (this.Mode == DrawingMode.Circle ||
+               this.Mode == DrawingMode.Arc)
+      {
+        this.CurrentCircular.CircularObject.P0.Transform.WorldTranslation = finalMousePosition;
+      }
+      
       this.CurrentGhost.Transform.WorldTranslation = finalMousePosition;
-      this.CurrentLinear.LinearObject.P1.Transform.WorldTranslation = finalMousePosition;
+    }
+    else if (this.State == DrawingState.Placing2)
+    {
+      var finalMousePosition = this.CalculateFinalMousePosition(mousePosition, event.WorldRay);
+      
+      this.CurrentCircular.CircularObject.P1.Transform.WorldTranslation = finalMousePosition;
+      this.CurrentGhost.Transform.WorldTranslation = finalMousePosition;
+    }
+    else if (this.State == DrawingState.ChoosingDirection)
+    {
+      this.CurrentCircular.CircularObject.CalculateWinding(mousePosition);
+      this.CurrentGhost.Transform.WorldTranslation = mousePosition;
     }
   }
   
@@ -233,11 +261,7 @@ class ObjectDrawer : ZilchComponent
     
     if (this.State == DrawingState.Idle)
     {
-      if (this.Mode == DrawingMode.Point   ||
-          this.Mode == DrawingMode.Segment ||
-          this.Mode == DrawingMode.Ray     ||
-          this.Mode == DrawingMode.Line)
-        this.BeginPlacing0();
+      this.BeginPlacing0();
     }
   }
   
@@ -306,7 +330,26 @@ class ObjectDrawer : ZilchComponent
       else // this.Mode == DrawingMode.Arc ||
            // this.Mode == DrawingMode.Circle
       {
+        var position = this.CurrentGhost.Transform.WorldTranslation;
         
+        this.EndPlacing0();
+        
+        var circularArchetype = this.CircleArchetype;
+        
+        if (this.Mode == DrawingMode.Arc)
+          circularArchetype = this.ArcArchetype;
+        
+        this.Point0 = position;
+        
+        var circular = this.Space.CreateAtPosition(circularArchetype, position);
+        var se = ShapeEvent();
+        se.Center = this.Point0;
+        se.Color = this.Color;
+        circular.DispatchEvent(Events.Placing0Complete, se);
+        
+        this.CurrentCircular = circular;
+        
+        this.BeginPlacing1();
       }
     }
     else if (this.State == DrawingState.Placing1)
@@ -333,7 +376,6 @@ class ObjectDrawer : ZilchComponent
         linear.DispatchEvent(Events.Placing1Complete, se);
         
         this.CurrentLinear = null;
-        
         this.BeginIdle();
         
         //this.OperationQueue.EndBatch();
@@ -341,8 +383,64 @@ class ObjectDrawer : ZilchComponent
       else // this.Mode == DrawingMode.Arc ||
            // this.Mode == DrawingMode.Circle
       {
+        var position = this.CurrentGhost.Transform.WorldTranslation;
         
+        this.EndPlacing1();
+        
+        this.Point1 = position;
+        
+        var circular = this.CurrentCircular;
+        var se = ShapeEvent();
+        se.Center = this.Point0;
+        se.Start = this.Point1;
+        se.Color = this.Color;
+        circular.DispatchEvent(Events.Placing1Complete, se);
+        
+        if (this.Mode == DrawingMode.Arc)
+        {
+          this.BeginPlacing2();
+        }
+        else
+        {
+          this.CurrentCircular = null;
+          this.BeginIdle();
+        }
       }
+    }
+    else if (this.State == DrawingState.Placing2)
+    {
+      var position = this.CurrentGhost.Transform.WorldTranslation;
+      
+      this.EndPlacing2();
+      
+      this.Point2 = position;
+      
+      var circular = this.CurrentCircular;
+      var se = ShapeEvent();
+      se.Center = this.Point0;
+      se.Start = this.Point1;
+      se.End = this.Point2;
+      se.Color = this.Color;
+      circular.DispatchEvent(Events.Placing2Complete, se);
+      
+      this.BeginChoosingDirection();
+    }
+    else if (this.State == DrawingState.ChoosingDirection)
+    {
+      var position = this.CurrentGhost.Transform.WorldTranslation;
+      
+      this.EndChoosingDirection();
+      
+      var circular = this.CurrentCircular;
+      var se = ShapeEvent();
+      se.Center = this.Point0;
+      se.Start = this.Point1;
+      se.End = this.Point2;
+      se.Color = this.Color;
+      circular.DispatchEvent(Events.ChoosingDirectionComplete, se);
+      
+      this.CurrentCircular = null;
+      this.BeginIdle();
     }
   }
   
@@ -420,7 +518,8 @@ class ObjectDrawer : ZilchComponent
   {
     if (this.Mode == DrawingMode.Segment ||
         this.Mode == DrawingMode.Ray     ||
-        this.Mode == DrawingMode.Line)
+        this.Mode == DrawingMode.Line    ||
+        this.Mode == DrawingMode.Circle)
       this.RemoveAllGhosts();
   }
   

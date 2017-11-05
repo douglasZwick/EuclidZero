@@ -30,17 +30,10 @@ class Point : ZilchComponent
     Zero.Connect(this.Owner, Events.PlacedAsStartPoint, this.OnPlacedAsStartPoint);
     Zero.Connect(this.Owner, Events.PlacedAsEndPoint, this.OnPlacedAsEndPoint);
     Zero.Connect(this.Owner, Events.PlacedAsPoint, this.OnPlacedAsPoint);
+    Zero.Connect(this.Owner, Events.PlacedAsO, this.OnPlacedAsO);
+    Zero.Connect(this.Owner, Events.PlacedAsP0, this.OnPlacedAsP0);
+    Zero.Connect(this.Owner, Events.PlacedAsP1, this.OnPlacedAsP1);
     Zero.Connect(this.Owner, Events.ObjectShouldChangeColor, this.OnObjectShouldChangeColor);
-  }
-  
-  
-  function OnPlacedAsPoint(event : ShapeEvent)
-  {
-    var sprite = this.SpriteCog.Sprite;
-    sprite.Visible = true;
-    sprite.VertexColor = event.Color;
-    this.ColliderCog.Collider.Ghost = false;
-    this.Transform.WorldTranslation = event.Start;
   }
   
   
@@ -55,6 +48,46 @@ class Point : ZilchComponent
   
   
   function OnPlacedAsEndPoint(event : ShapeEvent)
+  {
+    var sprite = this.SpriteCog.Sprite;
+    sprite.Visible = true;
+    sprite.VertexColor = event.Color;
+    this.ColliderCog.Collider.Ghost = false;
+    this.Transform.WorldTranslation = event.End;
+  }
+  
+  
+  function OnPlacedAsPoint(event : ShapeEvent)
+  {
+    var sprite = this.SpriteCog.Sprite;
+    sprite.Visible = true;
+    sprite.VertexColor = event.Color;
+    this.ColliderCog.Collider.Ghost = false;
+    this.Transform.WorldTranslation = event.Start;
+  }
+  
+  
+  function OnPlacedAsO(event : ShapeEvent)
+  {
+    var sprite = this.SpriteCog.Sprite;
+    sprite.Visible = true;
+    sprite.VertexColor = event.Color;
+    this.ColliderCog.Collider.Ghost = false;
+    this.Transform.WorldTranslation = event.Center;
+  }
+  
+  
+  function OnPlacedAsP0(event : ShapeEvent)
+  {
+    var sprite = this.SpriteCog.Sprite;
+    sprite.Visible = true;
+    sprite.VertexColor = event.Color;
+    this.ColliderCog.Collider.Ghost = false;
+    this.Transform.WorldTranslation = event.Start;
+  }
+  
+  
+  function OnPlacedAsP1(event : ShapeEvent)
   {
     var sprite = this.SpriteCog.Sprite;
     sprite.Visible = true;

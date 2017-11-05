@@ -58,7 +58,7 @@ class LinearObject : ZilchComponent
           var p1 = this.P1.Transform.WorldTranslation;
           var difference = p1 - start;
           var direction = Math.Normalize(difference);
-          end   = p1 + LinearObject.InfinityDistance * direction;
+          end = p1 + LinearObject.InfinityDistance * direction;
         }
       }
       else // this.Type == LinearObjectType.Line
@@ -94,8 +94,6 @@ class LinearObject : ZilchComponent
     }
   }
   
-  
-  
   var Line : DebugLine;
   var GhostLine : DebugLine;
   var GhostPulseTimer : Real = 0.0;
@@ -104,6 +102,8 @@ class LinearObject : ZilchComponent
   var GhostColorMin : Real4;
   var GhostColorMax : Real4;
   var Ghosting : Boolean = false;
+  
+  var Actions : ActionSet;
   
   var P0_ : Cog;
   var P1_ : Cog;
@@ -139,21 +139,11 @@ class LinearObject : ZilchComponent
   
   function Initialize(init : CogInitializer)
   {
+    this.Actions = Action.Group(this.Owner.Actions);
+    
     Zero.Connect(this.Owner, Events.Placing0Complete, this.OnPlacing0Complete);
     Zero.Connect(this.Owner, Events.Placing1Complete, this.OnPlacing1Complete);
     Zero.Connect(this.Owner, Events.ObjectShouldChangeColor, this.OnObjectShouldChangeColor);
-  }
-  
-  
-  function OnObjectShouldChangeColor(event : ShapeEvent)
-  {
-    this.Color = event.Color;
-    this.GhostColorMin = this.Color;
-    this.GhostColorMin.W *= this.GhostOpacityMinScalar;
-    this.GhostColorMax = this.Color;
-    this.GhostColorMax.W *= this.GhostOpacityMaxScalar;
-    this.P0.DispatchEvent(Events.ObjectShouldChangeColor, event);
-    this.P1.DispatchEvent(Events.ObjectShouldChangeColor, event);
   }
   
   
@@ -184,6 +174,18 @@ class LinearObject : ZilchComponent
     this.OrientGhostLineAndCollider();
     
     this.BeginRendering();
+  }
+  
+  
+  function OnObjectShouldChangeColor(event : ShapeEvent)
+  {
+    this.Color = event.Color;
+    this.GhostColorMin = this.Color;
+    this.GhostColorMin.W *= this.GhostOpacityMinScalar;
+    this.GhostColorMax = this.Color;
+    this.GhostColorMax.W *= this.GhostOpacityMaxScalar;
+    this.P0.DispatchEvent(Events.ObjectShouldChangeColor, event);
+    this.P1.DispatchEvent(Events.ObjectShouldChangeColor, event);
   }
   
   
@@ -225,7 +227,7 @@ class LinearObject : ZilchComponent
     this.Ghosting = false;
     this.ColliderCog.Collider.Ghost = false;
     
-    Zero.Disconnect(this.Space, Events.LogicUpdate, this);
+    //Zero.Disconnect(this.Space, Events.LogicUpdate, this);
   }
   
   
@@ -236,21 +238,22 @@ class LinearObject : ZilchComponent
     color.W = 0.0;
     this.Line.Color = color;
     
-    this.Owner.Actions.Cancel();
-    
-    var drawSeq = Action.Sequence(this.Owner.Actions);
+    this.Actions.Cancel();
+    this.Actions = Action.Group(this.Owner.Actions);
       
-      var ease = SampleCurve.SegmentDrawCurve;
-      
-      if (this.Type == LinearObjectType.Ray)
-      //if (this.TypeInt == LinearObjectType.Ray)  // TODO: remove on bugfix
-        ease = SampleCurve.RayDrawCurve;
-      else if (this.Type == LinearObjectType.Line)
-      //else if (this.TypeInt == LinearObjectType.Line)  // TODO: remove on bugfix
-        ease = SampleCurve.LineDrawCurve;
-      
-      Action.Property(drawSeq, @this.T, 1.0, this.DrawDuration, ease);
-      Action.Call(drawSeq, this.EndRendering);
+      var drawSeq = Action.Sequence(this.Actions);
+        
+        var ease = SampleCurve.SegmentDrawCurve;
+        
+        if (this.Type == LinearObjectType.Ray)
+        //if (this.TypeInt == LinearObjectType.Ray)  // TODO: remove on bugfix
+          ease = SampleCurve.RayDrawCurve;
+        else if (this.Type == LinearObjectType.Line)
+        //else if (this.TypeInt == LinearObjectType.Line)  // TODO: remove on bugfix
+          ease = SampleCurve.LineDrawCurve;
+        
+        Action.Property(drawSeq, @this.T, 1.0, this.DrawDuration, ease);
+        Action.Call(drawSeq, this.EndRendering);
       
     Zero.Connect(this.Space, Events.FrameUpdate, this.OnFrameUpdate);
   }
@@ -264,7 +267,7 @@ class LinearObject : ZilchComponent
   
   function EndRendering()
   {
-    Zero.Disconnect(this.Space, Events.LogicUpdate, this);
+    //Zero.Disconnect(this.Space, Events.LogicUpdate, this);
     
     this.Owner.DispatchEvent(Events.RenderingComplete, ShapeEvent());
   }

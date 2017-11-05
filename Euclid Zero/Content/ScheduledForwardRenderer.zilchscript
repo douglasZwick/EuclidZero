@@ -31,7 +31,7 @@ class ScheduledForwardRenderer : ZilchComponent
   // Path to object with DirectionalLight component to use for direct lighting.
   [Property] var DirectionalLight : CogPath = CogPath();
   
-  [Property] var DebugDrawAfterPostProcess : Boolean = true;
+  [Property] var DDBloom : Boolean = true;
   
 
   function Initialize(init : CogInitializer)
@@ -145,7 +145,7 @@ class ScheduledForwardRenderer : ZilchComponent
     alphaSettings.DepthSettings.DepthCompareFunc = TextureCompareFunc.LessEqual;
     event.Event.AddRenderTaskRenderPass(alphaSettings, RenderGroup.AdditiveBlend, ColorOutput());
     
-    if (!this.DebugDrawAfterPostProcess)
+    if (this.DDBloom)
       this.DrawDebugObjects(event.Event, colorTarget, depthTarget);
     
     // Bloom Sprites
@@ -188,7 +188,7 @@ class ScheduledForwardRenderer : ZilchComponent
   
   function OnDebugRenderUpdate(event : RenderScheduleEvent)
   {
-    if (!this.DebugDrawAfterPostProcess)
+    if (this.DDBloom)
       return;
     
     var viewportSize = event.ViewportSize;
