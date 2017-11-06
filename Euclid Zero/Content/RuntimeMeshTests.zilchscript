@@ -1,0 +1,32 @@
+[RunInEditor]
+class RuntimeMeshTests : ZilchComponent
+{
+  [Dependency]
+  var Model : Model;
+  
+  
+  [Property][ShaderInput("TintedColorMap", "Texture")]
+  var Texture : Texture = Texture.VerticalBeamGradient64Texture;
+  [Property][ShaderInput("TintedColorMap", "Tint")]
+  var Tint : Real4 = Colors.White;
+  [Property][ShaderInput("RingFill", "EmptyTexture")]
+  var EmptyTexture : Texture = Texture.SoftCircle256;
+  [Property][ShaderInput("RingFill", "EmptyTint")]
+  var EmptyTint : Real4 = Colors.Black;
+  [Property][ShaderInput("RingFill", "Fill")]
+  var Fill : Real = 1.0;
+  
+  [Property][ShaderInput("CircularLineToQuad", "Radius")]
+  var Radius : Real = 5.0;
+  [Property][ShaderInput("CircularLineToQuad", "Thickness")]
+  var Thickness : Real = 0.25;
+  
+  
+  function Initialize(init : CogInitializer)
+  {
+    this.Model.Mesh = CircularObject.Mesh;
+    this.Model.LocalAabbHalfExtents = Real3(this.Radius, this.Radius, 0.0001);
+    
+    Action.Property(this.Owner.Actions, @this.Fill, 1.0, 1.0, SampleCurve.SegmentDrawCurve);
+  }
+}

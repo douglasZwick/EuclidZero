@@ -1,0 +1,27 @@
+[Version:1]
+Material 
+{
+	var RenderGroups = Array
+	{
+		"582fad0ca055e4df:AdditiveBlend"
+	}
+	InterpolateUvAux 
+	{
+	}
+	CircularLineToQuad 
+	{
+		var Radius = 1
+		var Thickness = 0.100000001
+	}
+	TintedColorMap 
+	{
+		var Texture = "null"
+		var Tint = Real4{1, 1, 1, 1}
+	}
+	RingFill 
+	{
+		var Fill = 1
+		var EmptyTexture = "null"
+		var EmptyTint = Real4{0, 0, 0, 0}
+	}
+}

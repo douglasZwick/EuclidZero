@@ -25,7 +25,7 @@ Level
 		}
 		GridDraw 
 		{
-			var Active = true
+			var Active = false
 			var HalfCellOffset = false
 			var CellSize = 1
 			var Axis = AxisDirection.Z
@@ -86,7 +86,7 @@ Level
 				var PathPreference1 = CogPathPreference.SpaceRelative
 				var PathPreference2 = CogPathPreference.Absolute
 			}
-			var DDBloom = true
+			var DDBloom = false
 		}
 		IrisRenderer 
 		{
@@ -169,7 +169,7 @@ Level
 			var FarPlane = 500
 			var PerspectiveMode = PerspectiveMode.Orthographic
 			var FieldOfView = 45
-			var Size = 22.1034584
+			var Size = 20.0000191
 		}
 		EditorCameraController 
 		{
@@ -257,7 +257,39 @@ Level
 		}
 		CameraEditorDraw 
 		{
-			var Active = true
+			var Active = false
+		}
+	}
+	Cog [ContextId:5]
+	{
+		var Name = "RuntimeMeshTester"
+		Transform 
+		{
+			var Translation = Real3{0, 0, 0}
+			var Scale = Real3{1, 1, 1}
+			var Rotation = Quaternion{0, 0, 0, 1}
+		}
+		Model 
+		{
+			var Visible = true
+			var ViewCulling = true
+			var VisibilityEvents = true
+			var OverrideBoundingBox = false
+			var LocalAabbCenter = Real3{0, 0, 0}
+			var LocalAabbHalfExtents = Real3{9, 9, 0.00499999989}
+			var GroupSortValue = 0
+			var Material = "5917dd8254aa575f:RuntimeDrawing"
+			var Mesh = "null"
+		}
+		RuntimeMeshTests 
+		{
+			var Texture = "5917ca81893cce45:VerticalBeamGradient64Texture"
+			var Tint = Real4{5, 4.47999954, 0.99999994, 1}
+			var EmptyTexture = "5917ca81893cce45:VerticalBeamGradient64Texture"
+			var EmptyTint = Real4{1, 0.866666675, 0, 0.264999986}
+			var Fill = 0
+			var Radius = 8
+			var Thickness = 0.25
 		}
 	}
 }

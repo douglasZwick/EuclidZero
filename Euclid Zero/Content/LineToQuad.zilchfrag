@@ -1,0 +1,83 @@
+struct LineToQuadInput
+{
+  [Input] var ViewPosition : Real3;
+  [Input] var UvAux : Real2;
+}
+
+struct LineToQuadOutput
+{
+  [Output] var PerspectivePosition : Real4;
+  [Output] var Uv : Real2;
+  [Output] var UvAux : Real2;
+}
+
+
+//[Geometry(maxVertices : 6)]
+//struct LinearLineToLinearQuad
+//{
+  
+//}
+
+
+[Geometry(maxVertices : 6)]
+struct CircularLineToQuad
+{
+  [BuiltInInput] var ObjectWorldPosition : Real3;
+  [BuiltInInput] var WorldToView : Real4x4;
+  [BuiltInInput] var ViewToPerspective : Real4x4;
+  [PropertyInput] var Radius : Real = 1;
+  [PropertyInput] var Thickness : Real = 0.1;
+  
+  
+  function Main(input : LineInput[LineToQuadInput], output : TriangleOutput[LineToQuadOutput])
+  {
+    // Create corners of a view aligned quad
+    var corners = FixedArray[Real3, 4]();
+    
+    var halfwidth = this.Thickness / 2;
+    var center = Math.MultiplyPoint(this.WorldToView, this.ObjectWorldPosition);
+    var p0 = input[0].ViewPosition;
+    var p1 = input[1].ViewPosition;
+    var centerToP0 = p0 - center;
+    var centerToP1 = p1 - center;
+    var dirToP0 = Math.Normalize(centerToP0);
+    var dirToP1 = Math.Normalize(centerToP1);
+    var p0final = center + dirToP0 * this.Radius;
+    var p1final = center + dirToP1 * this.Radius;
+    
+    corners[0] = p0final - dirToP0 * halfwidth; // bottom left
+    corners[1] = p0final + dirToP0 * halfwidth; // bottom right
+    corners[2] = p1final - dirToP1 * halfwidth; // top left
+    corners[3] = p1final + dirToP1 * halfwidth; // top right
+    
+    // Output vertex position and uv
+    var vertices = FixedArray[LineToQuadOutput, 4]();
+    
+    vertices[0].PerspectivePosition = Math.Multiply(this.ViewToPerspective, Real4(corners[0], 1.0));
+    vertices[1].PerspectivePosition = Math.Multiply(this.ViewToPerspective, Real4(corners[1], 1.0));
+    vertices[2].PerspectivePosition = Math.Multiply(this.ViewToPerspective, Real4(corners[2], 1.0));
+    vertices[3].PerspectivePosition = Math.Multiply(this.ViewToPerspective, Real4(corners[3], 1.0));
+    
+    vertices[0].Uv = Real2(0, 1);
+    vertices[1].Uv = Real2(1, 1);
+    vertices[2].Uv = Real2(0, 0);
+    vertices[3].Uv = Real2(1, 0);
+    
+    vertices[0].UvAux = Real2(0, input[0].UvAux.Y);
+    vertices[1].UvAux = Real2(1, input[0].UvAux.Y);
+    vertices[2].UvAux = Real2(0, input[1].UvAux.Y);
+    vertices[3].UvAux = Real2(1, input[1].UvAux.Y);
+    
+    // First triangle
+    output.Append(vertices[0], 0);
+    output.Append(vertices[1], 0);
+    output.Append(vertices[2], 0);
+    output.Restart();
+    
+    // Second triangle
+    output.Append(vertices[2], 0);
+    output.Append(vertices[1], 0);
+    output.Append(vertices[3], 0);
+    output.Restart();
+  }
+}

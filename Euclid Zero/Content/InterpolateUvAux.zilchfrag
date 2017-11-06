@@ -1,0 +1,7 @@
+[Vertex]
+struct InterpolateUvAux
+{
+  [StageInput][Output] var UvAux : Real2;
+  
+  function Main() {}
+}

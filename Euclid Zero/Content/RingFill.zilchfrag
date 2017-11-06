@@ -1,0 +1,20 @@
+[Pixel]
+struct RingFill
+{
+  [StageInput][FragmentInput] var Uv : Real2;
+  [StageInput] var UvAux : Real2;
+  [PropertyInput] var Fill : Real = 1.0;
+  [PropertyInput] var EmptyTexture : Sampler2d;
+  [PropertyInput] var EmptyTint : Real4;
+  [FragmentInput][Output] var Color : Real4;
+  
+  
+  function Main()
+  {
+    var height = this.UvAux.Y;
+    var inFilledArea = height <= this.Fill;
+    var emptyColor = this.EmptyTexture.Sample(this.Uv) * this.EmptyTint;
+    
+    this.Color = Math.Select(inFilledArea, this.Color, emptyColor);
+  }
+}

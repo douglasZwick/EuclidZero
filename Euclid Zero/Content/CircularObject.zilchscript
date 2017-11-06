@@ -8,6 +8,63 @@ class CircularObject : ZilchComponent
   [Dependency] var ObjectBase : ObjectBase;
   
   
+  [Static]
+  var Mesh_ : Mesh;
+  [Static]
+  var Mesh : Mesh
+  {
+    get
+    {
+      if (CircularObject.Mesh_ == null)
+      {
+        var mesh = Mesh.CreateRuntime();
+        mesh.PrimitiveType = PrimitiveType.Lines;
+        mesh.Vertices.AddAttribute(VertexSemantic.Position, VertexElementType.Real, 3);
+        mesh.Vertices.AddAttribute(VertexSemantic.UvAux, VertexElementType.Real, 2);
+        
+        var lineCount = 360;
+        var radius = 1.0;
+        var dAngle = HM[Real].Tau / lineCount;
+        var dHeight = 1.0 / lineCount;
+        
+        //
+        //  p1
+        //
+        //  p0
+        //
+        
+        var p0 = radius * Real3.XAxis;
+        var p1 = Real3.Zero;
+        var height = 0.0;
+        var nextHeight = 0.0;
+        
+        for (var i = 0; i < lineCount; ++i)
+        {
+          var nextAngle = dAngle * (i + 1);
+          p1.X = radius * Math.Cos(nextAngle);
+          p1.Y = radius * Math.Sin(nextAngle);
+          
+          nextHeight = dHeight * (i + 1);
+          
+          mesh.Vertices.AddReal(p0);
+          mesh.Vertices.AddReal(Real2(0, height));
+          mesh.Vertices.AddReal(p1);
+          mesh.Vertices.AddReal(Real2(0, nextHeight));
+          
+          p0 = p1;
+          
+          height = nextHeight;
+        }
+        
+        mesh.Upload();
+        CircularObject.Mesh_ = mesh;
+      }
+      
+      return CircularObject.Mesh_;
+    }
+  }
+  
+  
   [Property] var Type : CircularObjectType = CircularObjectType.Arc;
   [Property] var Color : Real4 = Colors.Blue;
   [Property] var DrawDuration : Real = 1.0;

@@ -148,6 +148,8 @@ class ScheduledForwardRenderer : ZilchComponent
     if (this.DDBloom)
       this.DrawDebugObjects(event.Event, colorTarget, depthTarget);
     
+    event.Event.AddRenderTaskRenderPass(alphaSettings, RenderGroup.RuntimeDrawing, ColorOutput());
+    
     // Bloom Sprites
     alphaSettings.BlendSettings.DestFactor = BlendFactor.InvSourceAlpha;
     event.Event.AddRenderTaskRenderPass(alphaSettings, RenderGroup.BloomSprite, ColorOutput());

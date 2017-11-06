@@ -1,0 +1,15 @@
+[Pixel]
+struct TintedColorMap
+{
+  [PropertyInput] var Texture : Sampler2d;
+  [PropertyInput] var Tint : Real4 = Colors.White;
+  [FragmentInput][StageInput] var Uv : Real2;
+  
+  [Output] var Color : Real4;
+  
+  
+  function Main()
+  {
+    this.Color = this.Texture.Sample(this.Uv) * this.Tint;
+  }
+}
