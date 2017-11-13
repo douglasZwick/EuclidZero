@@ -6,6 +6,7 @@ struct RingFill
   [PropertyInput] var Fill : Real = 1.0;
   [PropertyInput] var EmptyTexture : Sampler2d;
   [PropertyInput] var EmptyTint : Real4;
+  [PropertyInput] var OpacityPower : Real = 1.0;
   [FragmentInput][Output] var Color : Real4;
   
   
@@ -14,7 +15,9 @@ struct RingFill
     var height = this.UvAux.Y;
     var inFilledArea = height <= this.Fill;
     var emptyColor = this.EmptyTexture.Sample(this.Uv) * this.EmptyTint;
+    var color = Math.Select(inFilledArea, this.Color, emptyColor);
+    color.W = Math.Pow(color.W, this.OpacityPower);
     
-    this.Color = Math.Select(inFilledArea, this.Color, emptyColor);
+    this.Color = color;
   }
 }

@@ -169,7 +169,7 @@ Level
 			var FarPlane = 500
 			var PerspectiveMode = PerspectiveMode.Orthographic
 			var FieldOfView = 45
-			var Size = 20.0000191
+			var Size = 20.0000153
 		}
 		EditorCameraController 
 		{
@@ -265,7 +265,7 @@ Level
 		var Name = "RuntimeMeshTester"
 		Transform 
 		{
-			var Translation = Real3{0, 0, 0}
+			var Translation = Real3{-5.99999952, 0, 0}
 			var Scale = Real3{1, 1, 1}
 			var Rotation = Quaternion{0, 0, 0, 1}
 		}
@@ -274,9 +274,9 @@ Level
 			var Visible = true
 			var ViewCulling = true
 			var VisibilityEvents = true
-			var OverrideBoundingBox = false
+			var OverrideBoundingBox = true
 			var LocalAabbCenter = Real3{0, 0, 0}
-			var LocalAabbHalfExtents = Real3{9, 9, 0.00499999989}
+			var LocalAabbHalfExtents = Real3{5, 5, 0.00499999989}
 			var GroupSortValue = 0
 			var Material = "5917dd8254aa575f:RuntimeDrawing"
 			var Mesh = "null"
@@ -284,12 +284,46 @@ Level
 		RuntimeMeshTests 
 		{
 			var Texture = "5917ca81893cce45:VerticalBeamGradient64Texture"
-			var Tint = Real4{5, 4.47999954, 0.99999994, 1}
+			var Tint = Real4{15, 13.5000019, 3.75, 1}
 			var EmptyTexture = "5917ca81893cce45:VerticalBeamGradient64Texture"
-			var EmptyTint = Real4{1, 0.866666675, 0, 0.264999986}
+			var EmptyTint = Real4{1.25, 1.25, 1.25, 1}
+			var OpacityPower = 1
 			var Fill = 0
-			var Radius = 8
-			var Thickness = 0.25
+			var Radius = 4.5
+			var Thickness = 0.100000001
+		}
+	}
+	Cog [ContextId:6]
+	{
+		var Name = "RuntimeMeshTester"
+		Transform 
+		{
+			var Translation = Real3{6, 0, 0}
+			var Scale = Real3{1, 1, 1}
+			var Rotation = Quaternion{0, 0, 0, 1}
+		}
+		Model 
+		{
+			var Visible = true
+			var ViewCulling = true
+			var VisibilityEvents = true
+			var OverrideBoundingBox = true
+			var LocalAabbCenter = Real3{0, 0, 0}
+			var LocalAabbHalfExtents = Real3{5, 5, 0.00499999989}
+			var GroupSortValue = 0
+			var Material = "5917dd8254aa575f:RuntimeDrawing"
+			var Mesh = "null"
+		}
+		RuntimeMeshTests 
+		{
+			var Texture = "5917ca81893cce45:VerticalBeamGradient64Texture"
+			var Tint = Real4{15, 13.5000019, 3.75, 1}
+			var EmptyTexture = "5917ca81893cce45:VerticalBeamGradient64Texture"
+			var EmptyTint = Real4{1.25, 1.25, 1.25, 1}
+			var OpacityPower = 40
+			var Fill = 0
+			var Radius = 4.5
+			var Thickness = 1
 		}
 	}
 }
